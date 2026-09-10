@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// One row per play, parsed from Spotify's "Extended Streaming History" export.
+// trackUri is the real Spotify track ID when present (podcast episodes don't have one).
+model PlayEvent {
+  id          String   @id @default(cuid())
+  playedAt    DateTime
+  msPlayed    Int
+  trackUri    String?
+  trackName   String?
+  artistName  String?
+  albumName   String?
+  platform    String?
+  reasonStart String?
+  reasonEnd   String?
+  shuffle     Boolean?
+  skipped     Boolean?
+  offline     Boolean?
+  isPodcast   Boolean  @default(false)
+  importedAt  DateTime @default(now())
+  // Non-nullable fallback for trackUri (SQL NULL != NULL means a nullable column
+  // in a unique constraint silently stops deduping rows that lack it).
+  dedupeKey   String
+
+  @@unique([dedupeKey, playedAt])
+  @@index([playedAt])
+  @@index([artistName])
+}

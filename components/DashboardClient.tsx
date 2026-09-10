@@ -60,14 +60,22 @@ export default function DashboardClient() {
             <span className="ml-2 font-normal text-neutral-500">— {state.data.displayName}</span>
           )}
         </h1>
-        <form action="/api/auth/logout" method="post">
-          <button
-            type="submit"
-            className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
-          >
-            Disconnect
-          </button>
-        </form>
+        <div className="flex items-center gap-4">
+          <a href="/history" className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors">
+            Full History
+          </a>
+          <a href="/import" className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors">
+            Import
+          </a>
+          <form action="/api/auth/logout" method="post">
+            <button
+              type="submit"
+              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+            >
+              Disconnect
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-6">

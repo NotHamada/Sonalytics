@@ -48,3 +48,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local sqlite db (personal listening history — never commit this)
+/prisma/*.db
+/prisma/*.db-journal

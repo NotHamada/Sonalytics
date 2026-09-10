@@ -13,10 +13,11 @@ Built with Next.js (App Router), using the Authorization Code flow with tokens k
    (Spotify requires `127.0.0.1`, not `localhost`, for local dev).
 3. Copy `.env.local.example` to `.env.local` and fill in your Client ID, Client Secret, and the
    redirect URI above.
-4. Install dependencies and run the dev server:
+4. Install dependencies, set up the local database, and run the dev server:
 
 ```bash
 npm install
+npx prisma migrate dev
 npm run dev
 ```
 
@@ -27,3 +28,11 @@ npm run dev
 
 `user-top-read`, `user-read-recently-played`, `user-library-read` — read-only, nothing is
 modified on the connected account.
+
+## Full history import
+
+The live Spotify API only exposes your last 50 plays. For real historical trends, request your
+**Extended Streaming History** from Spotify (Account → Privacy settings → Request data — it
+arrives by email, usually within a few days), then upload the `Streaming_History_Audio_*.json`
+files at `/import`. This is stored in a local SQLite database (`prisma/dev.db`, gitignored) —
+nothing is sent anywhere but your own machine.
