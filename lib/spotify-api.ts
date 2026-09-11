@@ -95,6 +95,31 @@ export async function getRecentlyPlayedRaw(
   return data.items;
 }
 
+interface TracksResponse {
+  tracks: (SpotifyTrack | null)[];
+}
+
+/** Batched track lookup (max 50 ids per Spotify's own limit) — used to get album art for
+ *  tracks from imported history, since the export JSON itself has no image URLs. */
+export async function getTracksByIds(accessToken: string, ids: string[]): Promise<SpotifyTrack[]> {
+  if (ids.length === 0) return [];
+  const data = await spotifyFetch<TracksResponse>(`/tracks?ids=${ids.join(",")}`, accessToken);
+  return data.tracks.filter((t): t is SpotifyTrack => t !== null);
+}
+
+interface ArtistSearchResponse {
+  artists: { items: SpotifyArtist[] };
+}
+
+/** Best-effort artist lookup by name — the extended-history export has no artist ids
+ *  (only plain-text names), so getting a photo means searching for it. Uses Spotify's
+ *  artist: field filter for a precise match and takes the top result. */
+export async function searchArtistByName(accessToken: string, name: string): Promise<SpotifyArtist | null> {
+  const q = encodeURIComponent(`artist:"${name}"`);
+  const data = await spotifyFetch<ArtistSearchResponse>(`/search?q=${q}&type=artist&limit=1`, accessToken);
+  return data.artists.items[0] ?? null;
+}
+
 interface SavedTracksResponse {
   total: number;
 }

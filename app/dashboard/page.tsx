@@ -1,12 +1,7 @@
 import { redirect } from "next/navigation";
-import { readStoredTokens } from "@/lib/spotify-auth";
-import DashboardClient from "@/components/DashboardClient";
 
-export default async function DashboardPage() {
-  const tokens = await readStoredTokens();
-  if (!tokens) {
-    redirect("/");
-  }
-
-  return <DashboardClient />;
+// Everything that used to live here is now part of /history, which is the
+// post-login destination. Kept as a redirect so old links/bookmarks still work.
+export default function DashboardPage() {
+  redirect("/history");
 }

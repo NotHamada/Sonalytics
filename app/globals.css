@@ -1,26 +1,160 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  color-scheme: light dark;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg-base: #f3f1fb;
+  --blob-1: #ffb3d1;
+  --blob-2: #a9c8ff;
+  --blob-3: #b7f5c9;
+
+  --text-primary: #17172a;
+  --text-secondary: #52526b;
+  --text-tertiary: #85859e;
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-shadow: rgba(35, 25, 70, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+
+  --divider: rgba(23, 23, 42, 0.09);
+  --hover: rgba(23, 23, 42, 0.05);
+
+  --accent: #189b48;
+  --accent-2: #1ed760;
+  --accent-glow: rgba(30, 215, 96, 0.35);
+  --accent-soft: rgba(24, 155, 72, 0.12);
+  --violet: #6a4cff;
+  --violet-glow: rgba(106, 76, 255, 0.3);
+  --violet-soft: rgba(106, 76, 255, 0.12);
+
+  --chart-grid: rgba(23, 23, 42, 0.1);
+  --chart-text: #6b6b85;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-base: #0a0a14;
+    --blob-1: #4a1259;
+    --blob-2: #0f2f57;
+    --blob-3: #0b3b2a;
+
+    --text-primary: #f2f2f9;
+    --text-secondary: #aeaec8;
+    --text-tertiary: #71718f;
+
+    --glass-bg: rgba(22, 22, 38, 0.55);
+    --glass-bg-strong: rgba(26, 26, 44, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.09);
+    --glass-shadow: rgba(0, 0, 0, 0.5);
+    --glass-highlight: rgba(255, 255, 255, 0.07);
+
+    --divider: rgba(255, 255, 255, 0.09);
+    --hover: rgba(255, 255, 255, 0.06);
+
+    --accent: #1ed760;
+    --accent-2: #4fe583;
+    --accent-glow: rgba(30, 215, 96, 0.4);
+    --accent-soft: rgba(30, 215, 96, 0.16);
+    --violet: #9b83ff;
+    --violet-glow: rgba(155, 131, 255, 0.35);
+    --violet-soft: rgba(155, 131, 255, 0.18);
+
+    --chart-grid: rgba(255, 255, 255, 0.09);
+    --chart-text: #8b8bab;
   }
 }
 
+@theme inline {
+  --color-bg-base: var(--bg-base);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-violet: var(--violet);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--divider);
+}
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  position: relative;
+  isolation: isolate;
+}
+
+/* Ambient blurred color blobs behind the glass UI. Fixed so they don't scroll with content. */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-mesh::before,
+.bg-mesh::after,
+.bg-mesh .blob-3 {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+.bg-mesh::before {
+  width: 42vw;
+  height: 42vw;
+  top: -12vw;
+  left: -8vw;
+  background: var(--blob-1);
+}
+
+.bg-mesh::after {
+  width: 38vw;
+  height: 38vw;
+  top: 15vh;
+  right: -10vw;
+  background: var(--blob-2);
+}
+
+.bg-mesh .blob-3 {
+  width: 46vw;
+  height: 46vw;
+  bottom: -18vw;
+  left: 18vw;
+  background: var(--blob-3);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    0 8px 32px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.glass-pill {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.glow-accent {
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 28px var(--accent-glow);
 }

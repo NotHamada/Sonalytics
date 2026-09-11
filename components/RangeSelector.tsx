@@ -54,15 +54,15 @@ export default function RangeSelector({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex flex-wrap gap-1 rounded-full border border-neutral-800 bg-neutral-900 p-1 text-sm">
+      <div className="glass-pill flex flex-wrap gap-1 rounded-2xl p-1 text-sm">
         {PRESETS.map((p) => (
           <button
             key={p.value}
             onClick={() => onPresetChange(p.value)}
             className={`rounded-full px-3 py-1.5 transition-colors ${
               preset === p.value
-                ? "bg-[#1DB954] font-semibold text-black"
-                : "text-neutral-400 hover:text-neutral-100"
+                ? "glow-accent bg-[var(--accent)] font-semibold text-white"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
             {p.label}
@@ -71,19 +71,19 @@ export default function RangeSelector({
       </div>
 
       {preset === "custom" && (
-        <div className="flex items-center gap-2 text-sm text-neutral-400">
+        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
           <input
             type="date"
             value={customStart}
             onChange={(e) => onCustomChange(e.target.value, customEnd)}
-            className="rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-neutral-100"
+            className="glass-pill rounded-md px-2 py-1.5 text-[var(--text-primary)]"
           />
           <span>to</span>
           <input
             type="date"
             value={customEnd}
             onChange={(e) => onCustomChange(customStart, e.target.value)}
-            className="rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-neutral-100"
+            className="glass-pill rounded-md px-2 py-1.5 text-[var(--text-primary)]"
           />
         </div>
       )}
