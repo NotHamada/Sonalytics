@@ -1,5 +1,7 @@
 "use client";
 
+import DateRangePicker from "./DateRangePicker";
+
 export type RangePreset = "all" | "today" | "week" | "month" | "year" | "custom";
 
 const PRESETS: { value: RangePreset; label: string }[] = [
@@ -71,21 +73,7 @@ export default function RangeSelector({
       </div>
 
       {preset === "custom" && (
-        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-          <input
-            type="date"
-            value={customStart}
-            onChange={(e) => onCustomChange(e.target.value, customEnd)}
-            className="glass-pill rounded-md px-2 py-1.5 text-[var(--text-primary)]"
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={customEnd}
-            onChange={(e) => onCustomChange(customStart, e.target.value)}
-            className="glass-pill rounded-md px-2 py-1.5 text-[var(--text-primary)]"
-          />
-        </div>
+        <DateRangePicker startDate={customStart} endDate={customEnd} onChange={onCustomChange} />
       )}
     </div>
   );

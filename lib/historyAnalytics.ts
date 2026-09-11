@@ -26,6 +26,34 @@ export interface CalendarDay {
   minutes: number;
 }
 
+export interface HourPoint {
+  hour: number;
+  label: string;
+  plays: number;
+  minutes: number;
+}
+
+export interface WeekdayPoint {
+  day: number;
+  label: string;
+  plays: number;
+  minutes: number;
+}
+
+export interface HeatmapCell {
+  day: number;
+  hour: number;
+  minutes: number;
+}
+
+export interface TimeOfDay {
+  byHour: HourPoint[];
+  byWeekday: WeekdayPoint[];
+  heatmap: HeatmapCell[];
+  peakHour: HourPoint | null;
+  peakWeekday: WeekdayPoint | null;
+}
+
 export type PlayRow = Pick<
   PlayEvent,
   | "playedAt"
@@ -37,6 +65,8 @@ export type PlayRow = Pick<
   | "isAudiobook"
   | "skipped"
 >;
+
+export type TimingRow = Pick<PlayEvent, "playedAt" | "msPlayed">;
 
 function toMinutes(ms: number): number {
   return Math.round((ms / 60000) * 10) / 10;
@@ -146,4 +176,67 @@ export function computeCalendar(rows: PlayRow[]): CalendarDay[] {
   return Array.from(map.entries())
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([date, ms]) => ({ date, minutes: Math.round(ms / 60000) }));
+}
+
+const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
+  const period = h < 12 ? "a" : "p";
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return `${display}${period}`;
+});
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Buckets every play by hour-of-day and day-of-week in the viewer's local time. `playedAt`
+ *  is stored in UTC (Spotify's own export format), and there's no per-play timezone info, so
+ *  we shift by the browser's current UTC offset rather than each play's true local time —
+ *  close enough for a trends view, and avoids an expensive Intl call per row. */
+export function computeTimeOfDay(rows: TimingRow[], tzOffsetMinutes: number): TimeOfDay {
+  const hourBuckets = Array.from({ length: 24 }, () => ({ plays: 0, ms: 0 }));
+  const weekdayBuckets = Array.from({ length: 7 }, () => ({ plays: 0, ms: 0 }));
+  const heatmapMs = new Map<string, number>();
+
+  for (const row of rows) {
+    const local = new Date(row.playedAt.getTime() - tzOffsetMinutes * 60_000);
+    const hour = local.getUTCHours();
+    const day = local.getUTCDay();
+
+    hourBuckets[hour].plays += 1;
+    hourBuckets[hour].ms += row.msPlayed;
+    weekdayBuckets[day].plays += 1;
+    weekdayBuckets[day].ms += row.msPlayed;
+
+    const key = `${day}-${hour}`;
+    heatmapMs.set(key, (heatmapMs.get(key) ?? 0) + row.msPlayed);
+  }
+
+  const byHour = hourBuckets.map((b, hour) => ({
+    hour,
+    label: HOUR_LABELS[hour],
+    plays: b.plays,
+    minutes: toMinutes(b.ms),
+  }));
+  const byWeekday = weekdayBuckets.map((b, day) => ({
+    day,
+    label: WEEKDAY_LABELS[day],
+    plays: b.plays,
+    minutes: toMinutes(b.ms),
+  }));
+
+  const heatmap: HeatmapCell[] = [];
+  for (let day = 0; day < 7; day++) {
+    for (let hour = 0; hour < 24; hour++) {
+      heatmap.push({ day, hour, minutes: toMinutes(heatmapMs.get(`${day}-${hour}`) ?? 0) });
+    }
+  }
+
+  const peakHour = byHour.reduce<HourPoint | null>(
+    (max, b) => (max === null || b.minutes > max.minutes ? b : max),
+    null
+  );
+  const peakWeekday = byWeekday.reduce<WeekdayPoint | null>(
+    (max, b) => (max === null || b.minutes > max.minutes ? b : max),
+    null
+  );
+
+  return { byHour, byWeekday, heatmap, peakHour, peakWeekday };
 }
