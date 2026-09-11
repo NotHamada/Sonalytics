@@ -184,7 +184,7 @@ export default function DateRangePicker({
                 className="min-w-0 rounded-md bg-transparent px-1 py-0.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--hover)] focus:outline-none"
               >
                 {MONTH_LABELS.map((m, i) => (
-                  <option key={m} value={i}>
+                  <option key={m} value={i} style={{ color: "#17172a", backgroundColor: "#ffffff" }}>
                     {m}
                   </option>
                 ))}
@@ -198,7 +198,7 @@ export default function DateRangePicker({
                 className="min-w-0 rounded-md bg-transparent px-1 py-0.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--hover)] focus:outline-none"
               >
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>
+                  <option key={y} value={y} style={{ color: "#17172a", backgroundColor: "#ffffff" }}>
                     {y}
                   </option>
                 ))}

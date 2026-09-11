@@ -6,11 +6,13 @@ import { useChartPalette } from "@/lib/useChartPalette";
 
 export default function HistogramChart({
   title,
+  subtitle,
   data,
   barName,
   emptyMessage,
 }: {
   title: string;
+  subtitle?: string;
   data: HistogramBucket[];
   barName: string;
   emptyMessage: string;
@@ -19,7 +21,10 @@ export default function HistogramChart({
 
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
+      <h2 className={`text-lg font-semibold text-[var(--text-primary)] ${subtitle ? "mb-1" : "mb-4"}`}>
+        {title}
+      </h2>
+      {subtitle && <p className="mb-4 text-xs text-[var(--text-tertiary)]">{subtitle}</p>}
       {data.length === 0 ? (
         <p className="text-sm text-[var(--text-tertiary)]">{emptyMessage}</p>
       ) : (

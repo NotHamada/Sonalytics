@@ -87,6 +87,12 @@ export default function InsightsClient() {
             Home
           </a>
           <a
+            href="/analysis"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Analysis
+          </a>
+          <a
             href="/import"
             className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >
