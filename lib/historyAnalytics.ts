@@ -12,6 +12,8 @@ export interface RankedItem {
   subtitle: string | null;
   plays: number;
   minutes: number;
+  /** Present for tracks (used to fetch album art from Spotify); null for artists. */
+  trackUri: string | null;
 }
 
 export interface TrendPoint {
@@ -61,7 +63,10 @@ export function computeSummary(rows: PlayRow[]): HistorySummary {
 }
 
 export function computeTopTracks(rows: PlayRow[], topN = 20): RankedItem[] {
-  const map = new Map<string, { name: string; subtitle: string | null; plays: number; ms: number }>();
+  const map = new Map<
+    string,
+    { name: string; subtitle: string | null; trackUri: string | null; plays: number; ms: number }
+  >();
   for (const row of rows) {
     if (row.isPodcast || row.isAudiobook || !row.trackName) continue;
     const key = row.trackUri ?? `${row.trackName}|${row.artistName ?? ""}`;
@@ -70,13 +75,25 @@ export function computeTopTracks(rows: PlayRow[], topN = 20): RankedItem[] {
       existing.plays += 1;
       existing.ms += row.msPlayed;
     } else {
-      map.set(key, { name: row.trackName, subtitle: row.artistName, plays: 1, ms: row.msPlayed });
+      map.set(key, {
+        name: row.trackName,
+        subtitle: row.artistName,
+        trackUri: row.trackUri,
+        plays: 1,
+        ms: row.msPlayed,
+      });
     }
   }
   return Array.from(map.values())
     .sort((a, b) => b.plays - a.plays)
     .slice(0, topN)
-    .map((v) => ({ name: v.name, subtitle: v.subtitle, plays: v.plays, minutes: toMinutes(v.ms) }));
+    .map((v) => ({
+      name: v.name,
+      subtitle: v.subtitle,
+      trackUri: v.trackUri,
+      plays: v.plays,
+      minutes: toMinutes(v.ms),
+    }));
 }
 
 export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
@@ -94,7 +111,13 @@ export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
   return Array.from(map.entries())
     .sort(([, a], [, b]) => b.plays - a.plays)
     .slice(0, topN)
-    .map(([name, v]) => ({ name, subtitle: null, plays: v.plays, minutes: toMinutes(v.ms) }));
+    .map(([name, v]) => ({
+      name,
+      subtitle: null,
+      trackUri: null,
+      plays: v.plays,
+      minutes: toMinutes(v.ms),
+    }));
 }
 
 /** Buckets by day for short ranges, by month for longer ones — a single bar per day is

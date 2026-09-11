@@ -12,12 +12,16 @@ import GenrePairsCard from "./GenrePairsCard";
 import CalendarHeatmap from "./CalendarHeatmap";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
+interface RankedItemWithImage extends RankedItem {
+  image?: string | null;
+}
+
 interface HistoryData {
   empty: boolean;
   emptyRange?: boolean;
   summary?: HistorySummary;
-  topTracks?: RankedItem[];
-  topArtists?: RankedItem[];
+  topTracks?: RankedItemWithImage[];
+  topArtists?: RankedItemWithImage[];
   trend?: TrendPoint[];
   calendar?: CalendarDay[];
 }
@@ -32,8 +36,19 @@ type HistoryLoadState =
   | { status: "error"; message: string }
   | { status: "ready"; data: HistoryData };
 
-function RankedList({ title, items }: { title: string; items: RankedItem[] }) {
+function RankedList({
+  title,
+  items,
+  showImages = false,
+  imageShape = "square",
+}: {
+  title: string;
+  items: RankedItemWithImage[];
+  showImages?: boolean;
+  imageShape?: "square" | "circle";
+}) {
   const max = Math.max(1, ...items.map((i) => i.plays));
+  const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-lg";
 
   return (
     <div className="glass-card p-5">
@@ -42,7 +57,14 @@ function RankedList({ title, items }: { title: string; items: RankedItem[] }) {
         {items.slice(0, 10).map((item, i) => (
           <li key={`${item.name}-${item.subtitle ?? ""}`}>
             <div className="mb-1 flex items-center gap-3">
-              <span className="w-5 text-sm text-[var(--text-tertiary)] tabular-nums">{i + 1}</span>
+              <span className="w-5 shrink-0 text-sm text-[var(--text-tertiary)] tabular-nums">{i + 1}</span>
+              {showImages &&
+                (item.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.image} alt="" className={`h-10 w-10 shrink-0 object-cover ${imageClass}`} />
+                ) : (
+                  <div className={`h-10 w-10 shrink-0 bg-[var(--hover)] ${imageClass}`} />
+                ))}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-[var(--text-primary)]">{item.name}</div>
                 {item.subtitle && (
@@ -53,7 +75,10 @@ function RankedList({ title, items }: { title: string; items: RankedItem[] }) {
                 {item.plays} plays
               </span>
             </div>
-            <div className="ml-8 h-1.5 rounded-full bg-[var(--divider)]">
+            <div
+              className="h-1.5 rounded-full bg-[var(--divider)]"
+              style={{ marginLeft: showImages ? "84px" : "32px" }}
+            >
               <div
                 className="h-1.5 rounded-full bg-[var(--accent)]"
                 style={{ width: `${(item.plays / max) * 100}%` }}
@@ -346,8 +371,13 @@ export default function HistoryClient() {
                 />
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <RankedList title="Top Tracks" items={history.data.topTracks ?? []} />
-                  <RankedList title="Top Artists" items={history.data.topArtists ?? []} />
+                  <RankedList title="Top Tracks" items={history.data.topTracks ?? []} showImages />
+                  <RankedList
+                    title="Top Artists"
+                    items={history.data.topArtists ?? []}
+                    showImages
+                    imageShape="circle"
+                  />
                 </div>
               </div>
             )}
