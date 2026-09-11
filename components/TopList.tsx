@@ -22,9 +22,9 @@ export default function TopList({
 
   return (
     <div className="glass-card p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
-        <div className="glass-pill flex gap-1 rounded-full p-1 text-xs">
+        <div className="glass-pill flex flex-wrap gap-1 rounded-full p-1 text-xs">
           {RANGES.map((r) => (
             <button
               key={r}

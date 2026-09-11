@@ -58,7 +58,7 @@ export default async function ImportPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex items-center justify-between px-6 py-4">
+      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">Sonalytics</h1>
         <div className="flex items-center gap-4">
           <a
@@ -78,7 +78,7 @@ export default async function ImportPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-12 space-y-10">
+      <main className="mx-auto max-w-3xl px-4 py-12 space-y-10 sm:px-6">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Import your history
@@ -91,14 +91,14 @@ export default async function ImportPage() {
         </div>
 
         {totalCount > 0 && earliest && latest && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <StatCard label="Plays Imported" value={totalCount.toLocaleString()} />
             <StatCard label="Since" value={earliest.playedAt.toLocaleDateString()} />
             <StatCard label="Through" value={latest.playedAt.toLocaleDateString()} />
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {STEPS.map((step, i) => (
             <div key={step.title} className="glass-card p-5">
               <div className="mb-3 flex items-center gap-2">

@@ -161,11 +161,11 @@ export default function HistoryClient() {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex items-center justify-between px-6 py-4">
+      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           Sonalytics
           {dashboard.status === "ready" && (
-            <span className="ml-2 font-normal text-[var(--text-tertiary)]">
+            <span className="ml-2 hidden font-normal text-[var(--text-tertiary)] sm:inline">
               — {dashboard.data.displayName}
             </span>
           )}
@@ -188,7 +188,7 @@ export default function HistoryClient() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8 space-y-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 space-y-6 sm:px-6">
         {dashboard.status === "loading" && (
           <div className="py-12 text-center text-[var(--text-tertiary)]">
             Loading your listening data…
@@ -228,12 +228,12 @@ export default function HistoryClient() {
               />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <TopList title="Top Artists" entries={dashboard.data.topArtistsByRange} />
               <TopList title="Top Tracks" entries={dashboard.data.topTracksByRange} />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <GenreChart data={dashboard.data.genreDistribution} />
               <HistogramChart
                 title="Popularity Distribution"
@@ -345,7 +345,7 @@ export default function HistoryClient() {
                   emptyMessage="Not enough data yet."
                 />
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <RankedList title="Top Tracks" items={history.data.topTracks ?? []} />
                   <RankedList title="Top Artists" items={history.data.topArtists ?? []} />
                 </div>
