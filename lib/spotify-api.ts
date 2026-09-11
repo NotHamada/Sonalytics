@@ -1,9 +1,4 @@
-import type {
-  RecentlyPlayedItem,
-  SpotifyArtist,
-  SpotifyTrack,
-  TimeRange,
-} from "./types";
+import type { SpotifyArtist, SpotifyTrack, TimeRange } from "./types";
 
 const API_BASE = "https://api.spotify.com/v1";
 
@@ -79,24 +74,25 @@ export async function getTopTracks(
   return data.items;
 }
 
-interface RecentlyPlayedResponse {
-  items: { played_at: string; track: SpotifyTrack }[];
+export interface RecentlyPlayedRawItem {
+  played_at: string;
+  track: SpotifyTrack;
 }
 
-export async function getRecentlyPlayed(
+interface RecentlyPlayedResponse {
+  items: RecentlyPlayedRawItem[];
+}
+
+/** Raw recently-played items (max 50 — Spotify's hard cap, no pagination beyond it). */
+export async function getRecentlyPlayedRaw(
   accessToken: string,
   limit = 50
-): Promise<RecentlyPlayedItem[]> {
+): Promise<RecentlyPlayedRawItem[]> {
   const data = await spotifyFetch<RecentlyPlayedResponse>(
     `/me/player/recently-played?limit=${limit}`,
     accessToken
   );
-  return data.items.map((item) => ({
-    playedAt: item.played_at,
-    trackId: item.track.id,
-    trackName: item.track.name,
-    artistName: item.track.artists.map((a) => a.name).join(", "),
-  }));
+  return data.items;
 }
 
 interface SavedTracksResponse {
@@ -109,10 +105,17 @@ export async function getSavedTracksTotal(accessToken: string): Promise<number> 
 }
 
 interface CurrentUserResponse {
+  id: string;
   display_name: string | null;
 }
 
 export async function getCurrentUserDisplayName(accessToken: string): Promise<string> {
   const data = await spotifyFetch<CurrentUserResponse>("/me", accessToken);
   return data.display_name ?? "there";
+}
+
+/** The stable Spotify user id (not the display name) — used to key the stored account row. */
+export async function getCurrentUserId(accessToken: string): Promise<string> {
+  const data = await spotifyFetch<CurrentUserResponse>("/me", accessToken);
+  return data.id;
 }

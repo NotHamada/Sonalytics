@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// One row per play, parsed from Spotify's "Extended Streaming History" export.
+// trackUri is the real Spotify track ID when present (podcast episodes don't have one).
+model PlayEvent {
+  id          String   @id @default(cuid())
+  playedAt    DateTime
+  msPlayed    Int
+  trackUri    String?
+  trackName   String?
+  artistName  String?
+  albumName   String?
+  platform    String?
+  reasonStart String?
+  reasonEnd   String?
+  shuffle     Boolean?
+  skipped     Boolean?
+  offline     Boolean?
+  isPodcast   Boolean  @default(false)
+  isAudiobook Boolean  @default(false)
+  importedAt  DateTime @default(now())
+  // Non-nullable fallback for trackUri (SQL NULL != NULL means a nullable column
+  // in a unique constraint silently stops deduping rows that lack it).
+  dedupeKey   String
+
+  @@unique([dedupeKey, playedAt])
+  @@index([playedAt])
+  @@index([artistName])
+}
+
+// Stores a refresh token server-side so the cron sync job (no browser, no cookies)
+// can authenticate as you. The browser session still uses httpOnly cookies as normal;
+// this is only for the background job.
+model SpotifyAccount {
+  id                   String   @id @default(cuid())
+  spotifyUserId        String   @unique
+  refreshToken         String
+  accessToken          String
+  accessTokenExpiresAt DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

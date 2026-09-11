@@ -32,13 +32,6 @@ export interface SpotifyTrack {
   external_urls: { spotify: string };
 }
 
-export interface RecentlyPlayedItem {
-  playedAt: string;
-  trackId: string;
-  trackName: string;
-  artistName: string;
-}
-
 export interface GenreCount {
   genre: string;
   count: number;
@@ -89,7 +82,6 @@ export interface DashboardData {
   popularityHistogram: HistogramBucket[];
   popularitySummary: { average: number; deepCutsPercent: number; sampleSize: number };
   releaseEraHistogram: HistogramBucket[];
-  recentlyPlayed: RecentlyPlayedItem[];
   savedTracksTotal: number;
   diversityIndex: DiversityIndex;
   artistCohorts: CohortBreakdown;
