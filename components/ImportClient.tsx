@@ -42,14 +42,12 @@ export default function ImportClient() {
   }
 
   return (
-    <div className="glass-card p-6">
-      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Import your history</h2>
-      <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
-        Request your <strong>Extended Streaming History</strong> from Spotify (Account → Privacy
-        settings → Request data), wait for the email — it can take a few days — unzip it, and
-        select every <code>Streaming_History_Audio_*.json</code> and{" "}
-        <code>Streaming_History_Video_*.json</code> file below (same format, just audio vs.
-        video plays).
+    <div className="glass-card p-6 text-center">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Upload your files</h2>
+      <p className="mx-auto mt-1.5 max-w-md text-sm text-[var(--text-secondary)]">
+        Select every <code>Streaming_History_Audio_*.json</code> and{" "}
+        <code>Streaming_History_Video_*.json</code> file from the unzipped export — same
+        format, just audio vs. video plays.
       </p>
 
       <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
@@ -74,7 +72,7 @@ export default function ImportClient() {
       )}
 
       {state.status === "done" && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-2 text-left">
           <div
             className="rounded-xl border border-[var(--divider)] px-4 py-3 text-sm text-[var(--text-primary)]"
             style={{ background: "var(--accent-soft)" }}
