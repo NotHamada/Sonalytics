@@ -6,7 +6,6 @@ import StatCard from "./StatCard";
 import TopList from "./TopList";
 import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
-import ListeningHeatmap from "./ListeningHeatmap";
 import CohortBoard from "./CohortBoard";
 import GenrePairsCard from "./GenrePairsCard";
 
@@ -131,15 +130,12 @@ export default function DashboardClient() {
               />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <HistogramChart
-                title="Taste by Decade"
-                data={state.data.releaseEraHistogram}
-                barName="Tracks"
-                emptyMessage="Not enough release-date data yet."
-              />
-              <ListeningHeatmap items={state.data.recentlyPlayed} />
-            </div>
+            <HistogramChart
+              title="Taste by Decade"
+              data={state.data.releaseEraHistogram}
+              barName="Tracks"
+              emptyMessage="Not enough release-date data yet."
+            />
 
             <div className="space-y-6">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">

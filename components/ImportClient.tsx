@@ -42,9 +42,9 @@ export default function ImportClient() {
   }
 
   return (
-    <div className="glass-card p-6">
-      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Import your history</h2>
-      <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
+    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+      <h2 className="text-lg font-semibold text-neutral-100">Import your history</h2>
+      <p className="mt-1.5 text-sm text-neutral-400">
         Request your <strong>Extended Streaming History</strong> from Spotify (Account → Privacy
         settings → Request data), wait for the email — it can take a few days — unzip it, and
         select every <code>Streaming_History_Audio_*.json</code> and{" "}
@@ -52,7 +52,7 @@ export default function ImportClient() {
         video plays).
       </p>
 
-      <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
+      <label className="mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition-colors">
         Choose files
         <input
           type="file"
@@ -63,38 +63,29 @@ export default function ImportClient() {
         />
       </label>
 
-      {state.status === "uploading" && (
-        <p className="mt-4 text-sm text-[var(--text-secondary)]">Importing…</p>
-      )}
+      {state.status === "uploading" && <p className="mt-4 text-sm text-neutral-400">Importing…</p>}
 
       {state.status === "error" && (
-        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
+        <div className="mt-4 rounded-md border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
           {state.message}
         </div>
       )}
 
       {state.status === "done" && (
         <div className="mt-4 space-y-2">
-          <div
-            className="rounded-xl border border-[var(--divider)] px-4 py-3 text-sm text-[var(--text-primary)]"
-            style={{ background: "var(--accent-soft)" }}
-          >
+          <div className="rounded-md border border-neutral-800 bg-neutral-800/50 px-4 py-3 text-sm text-neutral-100">
             Imported {state.totalInserted.toLocaleString()} new plays (
             {state.totalParsed.toLocaleString()} parsed across {state.files.length} file
             {state.files.length === 1 ? "" : "s"}).
           </div>
-          <ul className="space-y-1 text-xs text-[var(--text-tertiary)]">
+          <ul className="space-y-1 text-xs text-neutral-500">
             {state.files.map((f) => (
               <li key={f.name}>
-                {f.name}:{" "}
-                {f.error ? <span className="text-red-500 dark:text-red-300">{f.error}</span> : `${f.parsed} entries`}
+                {f.name}: {f.error ? <span className="text-red-300">{f.error}</span> : `${f.parsed} entries`}
               </li>
             ))}
           </ul>
-          <a
-            href="/history"
-            className="mt-3 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
-          >
+          <a href="/history" className="mt-3 inline-block text-sm font-medium text-[#1DB954] hover:underline">
             View your history →
           </a>
         </div>

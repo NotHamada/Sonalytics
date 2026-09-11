@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getValidAccessToken } from "@/lib/spotify-auth";
 import {
   getCurrentUserDisplayName,
-  getRecentlyPlayed,
   getSavedTracksTotal,
   getTopArtists,
   getTopTracks,
@@ -31,14 +30,12 @@ export async function GET() {
   }
 
   try {
-    const [displayName, artistsByRange, tracksByRange, recentlyPlayed, savedTracksTotal] =
-      await Promise.all([
-        getCurrentUserDisplayName(accessToken),
-        Promise.all(TIME_RANGES.map((range) => getTopArtists(accessToken, range, 50))),
-        Promise.all(TIME_RANGES.map((range) => getTopTracks(accessToken, range, 50))),
-        getRecentlyPlayed(accessToken, 50),
-        getSavedTracksTotal(accessToken),
-      ]);
+    const [displayName, artistsByRange, tracksByRange, savedTracksTotal] = await Promise.all([
+      getCurrentUserDisplayName(accessToken),
+      Promise.all(TIME_RANGES.map((range) => getTopArtists(accessToken, range, 50))),
+      Promise.all(TIME_RANGES.map((range) => getTopTracks(accessToken, range, 50))),
+      getSavedTracksTotal(accessToken),
+    ]);
 
     const artistsMap: Record<TimeRange, SpotifyArtist[]> = {
       short_term: artistsByRange[0],
@@ -70,7 +67,6 @@ export async function GET() {
       popularityHistogram,
       popularitySummary,
       releaseEraHistogram: computeReleaseEraHistogram(tracksByRange),
-      recentlyPlayed,
       savedTracksTotal,
       diversityIndex: computeDiversityIndex(artistsByRange),
       artistCohorts: computeArtistCohorts(artistsMap),

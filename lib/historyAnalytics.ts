@@ -14,8 +14,8 @@ export interface RankedItem {
   minutes: number;
 }
 
-export interface MonthlyMinutes {
-  month: string;
+export interface TrendPoint {
+  label: string;
   minutes: number;
 }
 
@@ -97,15 +97,21 @@ export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
     .map(([name, v]) => ({ name, subtitle: null, plays: v.plays, minutes: toMinutes(v.ms) }));
 }
 
-export function computeMonthlyTrend(rows: PlayRow[]): MonthlyMinutes[] {
+/** Buckets by day for short ranges, by month for longer ones — a single bar per day is
+ *  fine for a week, useless for three years, so the caller picks based on range span. */
+export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): TrendPoint[] {
+  const sliceLength = granularity === "day" ? 10 : 7;
   const map = new Map<string, number>();
   for (const row of rows) {
-    const month = row.playedAt.toISOString().slice(0, 7);
-    map.set(month, (map.get(month) ?? 0) + row.msPlayed);
+    const key = row.playedAt.toISOString().slice(0, sliceLength);
+    map.set(key, (map.get(key) ?? 0) + row.msPlayed);
   }
   return Array.from(map.entries())
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([month, ms]) => ({ month, minutes: Math.round(ms / 60000) }));
+    .map(([key, ms]) => ({
+      label: granularity === "day" ? key.slice(5) : key.slice(2),
+      minutes: Math.round(ms / 60000),
+    }));
 }
 
 export function computeCalendar(rows: PlayRow[]): CalendarDay[] {

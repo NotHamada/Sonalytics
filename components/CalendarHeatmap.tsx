@@ -33,14 +33,14 @@ export default function CalendarHeatmap({ data }: { data: CalendarDay[] }) {
   }, [data]);
 
   return (
-    <div className="glass-card p-5">
-      <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Listening Calendar</h2>
-      <p className="mb-4 text-xs text-[var(--text-tertiary)]">
+    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+      <h2 className="mb-1 text-lg font-semibold text-neutral-100">Listening Calendar</h2>
+      <p className="mb-4 text-xs text-neutral-500">
         Every day you listened, from your imported history — darker means more minutes.
       </p>
 
       {weeks.length === 0 ? (
-        <p className="text-sm text-[var(--text-tertiary)]">No history imported yet.</p>
+        <p className="text-sm text-neutral-500">No history imported yet.</p>
       ) : (
         <div className="overflow-x-auto pb-1">
           <div className="inline-grid grid-flow-col gap-[3px]">
@@ -55,7 +55,7 @@ export default function CalendarHeatmap({ data }: { data: CalendarDay[] }) {
                       title={`${day.date} — ${day.minutes} min`}
                       className="h-[10px] w-[10px] rounded-[2px]"
                       style={{
-                        background: day.minutes === 0 ? "var(--divider)" : "var(--accent)",
+                        background: day.minutes === 0 ? "#262626" : "#1DB954",
                         opacity: day.minutes === 0 ? 1 : 0.25 + 0.75 * (day.minutes / max),
                       }}
                     />
