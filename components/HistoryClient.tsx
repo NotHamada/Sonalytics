@@ -22,6 +22,7 @@ interface HistoryData {
   summary?: HistorySummary;
   topTracks?: RankedItemWithImage[];
   topArtists?: RankedItemWithImage[];
+  topArtistsByMinutes?: RankedItemWithImage[];
   trend?: TrendPoint[];
   calendar?: CalendarDay[];
 }
@@ -41,13 +42,16 @@ function RankedList({
   items,
   showImages = false,
   imageShape = "square",
+  metric = "plays",
 }: {
   title: string;
   items: RankedItemWithImage[];
   showImages?: boolean;
   imageShape?: "square" | "circle";
+  metric?: "plays" | "minutes";
 }) {
-  const max = Math.max(1, ...items.map((i) => i.plays));
+  const valueOf = (item: RankedItemWithImage) => (metric === "minutes" ? item.minutes : item.plays);
+  const max = Math.max(1, ...items.map(valueOf));
   const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-lg";
 
   return (
@@ -72,7 +76,7 @@ function RankedList({
                 )}
               </div>
               <span className="shrink-0 text-xs tabular-nums text-[var(--text-tertiary)]">
-                {item.plays} plays
+                {metric === "minutes" ? `${Math.round(item.minutes)} min` : `${item.plays} plays`}
               </span>
             </div>
             <div
@@ -81,7 +85,7 @@ function RankedList({
             >
               <div
                 className="h-1.5 rounded-full bg-[var(--accent)]"
-                style={{ width: `${(item.plays / max) * 100}%` }}
+                style={{ width: `${(valueOf(item) / max) * 100}%` }}
               />
             </div>
           </li>
@@ -382,13 +386,20 @@ export default function HistoryClient() {
                   emptyMessage="Not enough data yet."
                 />
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                   <RankedList title="Top Tracks" items={history.data.topTracks ?? []} showImages />
                   <RankedList
                     title="Top Artists"
                     items={history.data.topArtists ?? []}
                     showImages
                     imageShape="circle"
+                  />
+                  <RankedList
+                    title="Top Artists by Minutes"
+                    items={history.data.topArtistsByMinutes ?? []}
+                    showImages
+                    imageShape="circle"
+                    metric="minutes"
                   />
                 </div>
               </div>

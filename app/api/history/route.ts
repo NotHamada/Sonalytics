@@ -7,6 +7,7 @@ import {
   computeCalendar,
   computeSummary,
   computeTopArtists,
+  computeTopArtistsByMinutes,
   computeTopTracks,
   computeTrend,
   type RankedItem,
@@ -123,12 +124,28 @@ export async function GET(request: NextRequest) {
     new Date(summary.latestPlay!).getTime() - new Date(summary.earliestPlay!).getTime();
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
-  // Cap artist image lookups to the 10 actually shown in the UI — unlike the track lookup
-  // (one batched call regardless of count), each artist is its own search request.
-  const [topTracks, topArtists] = await Promise.all([
+  const topArtistsRaw = computeTopArtists(rows, 10);
+  const topArtistsByMinutesRaw = computeTopArtistsByMinutes(rows, 10);
+
+  // The two artist rankings usually overlap heavily (same artists, different order), and artist
+  // search has no batch endpoint (one request each) — so look up each unique artist only once
+  // across both lists instead of doubling the Spotify API calls.
+  const uniqueArtists = new Map<string, RankedItem>();
+  for (const a of [...topArtistsRaw, ...topArtistsByMinutesRaw]) {
+    if (!uniqueArtists.has(a.name)) uniqueArtists.set(a.name, a);
+  }
+
+  const [topTracks, uniqueArtistsWithImages] = await Promise.all([
     attachTrackImages(accessToken, computeTopTracks(rows)),
-    attachArtistImages(accessToken, computeTopArtists(rows, 10)),
+    attachArtistImages(accessToken, Array.from(uniqueArtists.values())),
   ]);
+
+  const imageByArtist = new Map(uniqueArtistsWithImages.map((a) => [a.name, a.image]));
+  const topArtists = topArtistsRaw.map((a) => ({ ...a, image: imageByArtist.get(a.name) ?? null }));
+  const topArtistsByMinutes = topArtistsByMinutesRaw.map((a) => ({
+    ...a,
+    image: imageByArtist.get(a.name) ?? null,
+  }));
 
   return NextResponse.json({
     empty: false,
@@ -136,6 +153,7 @@ export async function GET(request: NextRequest) {
     summary,
     topTracks,
     topArtists,
+    topArtistsByMinutes,
     trend: computeTrend(rows, granularity),
     calendar: computeCalendar(rows),
   });
