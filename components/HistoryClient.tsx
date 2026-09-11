@@ -197,6 +197,12 @@ export default function HistoryClient() {
         </h1>
         <div className="flex items-center gap-4">
           <a
+            href="/insights"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Insights
+          </a>
+          <a
             href="/import"
             className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >

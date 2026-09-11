@@ -67,6 +67,12 @@ export default async function ImportPage() {
           >
             Home
           </a>
+          <a
+            href="/insights"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Insights
+          </a>
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
