@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import StatCard from "./StatCard";
-import CalendarHeatmap from "./CalendarHeatmap";
-import HistogramChart from "./HistogramChart";
-import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import type { DashboardData } from "@/lib/types";
 import type { CalendarDay, HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
+import StatCard from "./StatCard";
+import TopList from "./TopList";
+import GenreChart from "./GenreChart";
+import HistogramChart from "./HistogramChart";
+import CohortBoard from "./CohortBoard";
+import GenrePairsCard from "./GenrePairsCard";
+import CalendarHeatmap from "./CalendarHeatmap";
+import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface HistoryData {
   empty: boolean;
@@ -17,7 +22,12 @@ interface HistoryData {
   calendar?: CalendarDay[];
 }
 
-type LoadState =
+type DashboardLoadState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; data: DashboardData };
+
+type HistoryLoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; data: HistoryData };
@@ -59,19 +69,63 @@ function RankedList({ title, items }: { title: string; items: RankedItem[] }) {
   );
 }
 
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
+      {children}
+    </h2>
+  );
+}
+
 export default function HistoryClient() {
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [dashboard, setDashboard] = useState<DashboardLoadState>({ status: "loading" });
+  const [history, setHistory] = useState<HistoryLoadState>({ status: "loading" });
   const [preset, setPreset] = useState<RangePreset>("all");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
+  // Live Spotify snapshot (top items, genre stats, etc.) — not tied to the history range,
+  // so it only needs to load once.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/dashboard", { cache: "no-store" });
+        if (res.status === 401) {
+          window.location.href = "/";
+          return;
+        }
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(body.error ?? `Request failed (${res.status})`);
+        }
+        const data = (await res.json()) as DashboardData;
+        if (!cancelled) setDashboard({ status: "ready", data });
+      } catch (err) {
+        if (!cancelled) {
+          setDashboard({
+            status: "error",
+            message: err instanceof Error ? err.message : "Something went wrong.",
+          });
+        }
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Imported history — refetches whenever the selected range changes.
   useEffect(() => {
     if (preset === "custom" && (!customStart || !customEnd)) return;
 
     let cancelled = false;
 
     async function load() {
-      setState({ status: "loading" });
+      setHistory({ status: "loading" });
       try {
         const bounds = computeRangeBounds(preset, customStart, customEnd);
         const qs = new URLSearchParams();
@@ -88,10 +142,10 @@ export default function HistoryClient() {
           throw new Error(body.error ?? `Request failed (${res.status})`);
         }
         const data = (await res.json()) as HistoryData;
-        if (!cancelled) setState({ status: "ready", data });
+        if (!cancelled) setHistory({ status: "ready", data });
       } catch (err) {
         if (!cancelled) {
-          setState({
+          setHistory({
             status: "error",
             message: err instanceof Error ? err.message : "Something went wrong.",
           });
@@ -110,98 +164,198 @@ export default function HistoryClient() {
       <header className="glass-pill sticky top-0 z-10 flex items-center justify-between px-6 py-4">
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           Sonalytics
-          <span className="ml-2 font-normal text-[var(--text-tertiary)]">— Full History</span>
+          {dashboard.status === "ready" && (
+            <span className="ml-2 font-normal text-[var(--text-tertiary)]">
+              — {dashboard.data.displayName}
+            </span>
+          )}
         </h1>
-        <a
-          href="/dashboard"
-          className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-        >
-          Back to dashboard
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="/import"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Import
+          </a>
+          <form action="/api/auth/logout" method="post">
+            <button
+              type="submit"
+              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+            >
+              Disconnect
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-        {state.status !== "loading" && !(state.status === "ready" && state.data.empty) && (
-          <RangeSelector
-            preset={preset}
-            onPresetChange={setPreset}
-            customStart={customStart}
-            customEnd={customEnd}
-            onCustomChange={(start, end) => {
-              setCustomStart(start);
-              setCustomEnd(end);
-            }}
-          />
-        )}
-
-        {state.status === "loading" && (
-          <div className="py-24 text-center text-[var(--text-tertiary)]">
-            Loading your imported history…
+        {dashboard.status === "loading" && (
+          <div className="py-12 text-center text-[var(--text-tertiary)]">
+            Loading your listening data…
           </div>
         )}
 
-        {state.status === "error" && (
+        {dashboard.status === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            Couldn&apos;t load your history: {state.message}
+            Couldn&apos;t load your data: {dashboard.message}
           </div>
         )}
 
-        {state.status === "ready" && state.data.empty && (
-          <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">No imported history yet.</p>
-            <a
-              href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-            >
-              Import your data
-            </a>
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && state.data.emptyRange && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            No plays in this time range.
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && !state.data.emptyRange && state.data.summary && (
+        {dashboard.status === "ready" && (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label="Total Plays" value={state.data.summary.totalPlays.toLocaleString()} />
-              <StatCard label="Total Minutes" value={state.data.summary.totalMinutes.toLocaleString()} />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
               <StatCard
-                label="Since"
-                value={
-                  state.data.summary.earliestPlay
-                    ? new Date(state.data.summary.earliestPlay).toLocaleDateString()
-                    : "—"
-                }
+                label="Avg. Track Popularity"
+                value={`${dashboard.data.popularitySummary.average}/100`}
+                hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
               />
               <StatCard
-                label="Through"
-                value={
-                  state.data.summary.latestPlay
-                    ? new Date(state.data.summary.latestPlay).toLocaleDateString()
-                    : "—"
-                }
+                label="Deep Cuts"
+                value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
+                hint="Tracks under 40 popularity"
+              />
+              <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
+              <StatCard
+                label="Taste Diversity"
+                value={dashboard.data.diversityIndex.label}
+                hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
+              />
+              <StatCard
+                label="Era vs. Popularity"
+                value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
+                hint={dashboard.data.popularityEraCorrelation.interpretation}
               />
             </div>
-
-            <CalendarHeatmap data={state.data.calendar ?? []} />
-
-            <HistogramChart
-              title="Minutes Over Time"
-              data={(state.data.trend ?? []).map((t) => ({ label: t.label, count: t.minutes }))}
-              barName="Minutes"
-              emptyMessage="Not enough data yet."
-            />
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <RankedList title="Top Tracks" items={state.data.topTracks ?? []} />
-              <RankedList title="Top Artists" items={state.data.topArtists ?? []} />
+              <TopList title="Top Artists" entries={dashboard.data.topArtistsByRange} />
+              <TopList title="Top Tracks" entries={dashboard.data.topTracksByRange} />
             </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <GenreChart data={dashboard.data.genreDistribution} />
+              <HistogramChart
+                title="Popularity Distribution"
+                data={dashboard.data.popularityHistogram}
+                barName="Tracks"
+                emptyMessage="Not enough top tracks to build a distribution yet."
+              />
+            </div>
+
+            <HistogramChart
+              title="Taste by Decade"
+              data={dashboard.data.releaseEraHistogram}
+              barName="Tracks"
+              emptyMessage="Not enough release-date data yet."
+            />
+
+            <div className="space-y-6">
+              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
+              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
+              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
+            </div>
+
+            <GenrePairsCard pairs={dashboard.data.genrePairs} />
           </>
         )}
+
+        <div className="space-y-6 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <SectionHeading>Full History</SectionHeading>
+            {!(history.status === "ready" && history.data.empty) && (
+              <RangeSelector
+                preset={preset}
+                onPresetChange={setPreset}
+                customStart={customStart}
+                customEnd={customEnd}
+                onCustomChange={(start, end) => {
+                  setCustomStart(start);
+                  setCustomEnd(end);
+                }}
+              />
+            )}
+          </div>
+
+          {history.status === "loading" && (
+            <div className="py-12 text-center text-[var(--text-tertiary)]">
+              Loading your imported history…
+            </div>
+          )}
+
+          {history.status === "error" && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
+              Couldn&apos;t load your history: {history.message}
+            </div>
+          )}
+
+          {history.status === "ready" && history.data.empty && (
+            <div className="glass-card p-8 text-center">
+              <p className="text-[var(--text-secondary)]">No imported history yet.</p>
+              <a
+                href="/import"
+                className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+              >
+                Import your data
+              </a>
+            </div>
+          )}
+
+          {history.status === "ready" && !history.data.empty && history.data.emptyRange && (
+            <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
+              No plays in this time range.
+            </div>
+          )}
+
+          {history.status === "ready" &&
+            !history.data.empty &&
+            !history.data.emptyRange &&
+            history.data.summary && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <StatCard label="Total Plays" value={history.data.summary.totalPlays.toLocaleString()} />
+                  <StatCard
+                    label="Total Minutes"
+                    value={history.data.summary.totalMinutes.toLocaleString()}
+                  />
+                  <StatCard
+                    label="Since"
+                    value={
+                      history.data.summary.earliestPlay
+                        ? new Date(history.data.summary.earliestPlay).toLocaleDateString()
+                        : "—"
+                    }
+                  />
+                  <StatCard
+                    label="Through"
+                    value={
+                      history.data.summary.latestPlay
+                        ? new Date(history.data.summary.latestPlay).toLocaleDateString()
+                        : "—"
+                    }
+                  />
+                </div>
+
+                <CalendarHeatmap data={history.data.calendar ?? []} />
+
+                <HistogramChart
+                  title="Minutes Over Time"
+                  data={(history.data.trend ?? []).map((t) => ({ label: t.label, count: t.minutes }))}
+                  barName="Minutes"
+                  emptyMessage="Not enough data yet."
+                />
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <RankedList title="Top Tracks" items={history.data.topTracks ?? []} />
+                  <RankedList title="Top Artists" items={history.data.topArtists ?? []} />
+                </div>
+              </div>
+            )}
+        </div>
+
+        <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">
+          Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.
+        </footer>
       </main>
     </div>
   );

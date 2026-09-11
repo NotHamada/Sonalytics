@@ -98,7 +98,7 @@ export default async function Home({
 }) {
   const tokens = await readStoredTokens();
   if (tokens) {
-    redirect("/dashboard");
+    redirect("/history");
   }
 
   const { error } = await searchParams;
