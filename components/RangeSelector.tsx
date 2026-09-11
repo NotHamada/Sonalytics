@@ -54,7 +54,7 @@ export default function RangeSelector({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="glass-pill flex flex-wrap gap-1 rounded-full p-1 text-sm">
+      <div className="glass-pill flex flex-wrap gap-1 rounded-2xl p-1 text-sm">
         {PRESETS.map((p) => (
           <button
             key={p.value}
