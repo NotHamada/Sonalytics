@@ -34,5 +34,6 @@ modified on the connected account.
 The live Spotify API only exposes your last 50 plays. For real historical trends, request your
 **Extended Streaming History** from Spotify (Account → Privacy settings → Request data — it
 arrives by email, usually within a few days), then upload the `Streaming_History_Audio_*.json`
-files at `/import`. This is stored in a local SQLite database (`prisma/dev.db`, gitignored) —
-nothing is sent anywhere but your own machine.
+and `Streaming_History_Video_*.json` files at `/import` (Spotify's own docs list both as sharing
+the same schema — "end_song" and "end_video"). This is stored in a local SQLite database
+(`prisma/dev.db`, gitignored) — nothing is sent anywhere but your own machine.

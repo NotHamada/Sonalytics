@@ -47,7 +47,9 @@ export default function ImportClient() {
       <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
         Request your <strong>Extended Streaming History</strong> from Spotify (Account → Privacy
         settings → Request data), wait for the email — it can take a few days — unzip it, and
-        select every <code>Streaming_History_Audio_*.json</code> file below.
+        select every <code>Streaming_History_Audio_*.json</code> and{" "}
+        <code>Streaming_History_Video_*.json</code> file below (same format, just audio vs.
+        video plays).
       </p>
 
       <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">

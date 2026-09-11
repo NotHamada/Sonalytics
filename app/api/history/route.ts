@@ -23,6 +23,7 @@ export async function GET() {
       trackName: true,
       artistName: true,
       isPodcast: true,
+      isAudiobook: true,
       skipped: true,
     },
   });

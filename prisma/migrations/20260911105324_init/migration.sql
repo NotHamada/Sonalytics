@@ -14,6 +14,7 @@ CREATE TABLE "PlayEvent" (
     "skipped" BOOLEAN,
     "offline" BOOLEAN,
     "isPodcast" BOOLEAN NOT NULL DEFAULT false,
+    "isAudiobook" BOOLEAN NOT NULL DEFAULT false,
     "importedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "dedupeKey" TEXT NOT NULL
 );

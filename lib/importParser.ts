@@ -1,5 +1,6 @@
-// Shape of entries in Spotify's "Extended Streaming History" export
-// (files named like Streaming_History_Audio_2023_1.json).
+// Shape of entries in Spotify's "Extended Streaming History" export. Files named
+// Streaming_History_Audio_*.json and Streaming_History_Video_*.json ("end_song" and
+// "end_video" in Spotify's own docs) share this exact schema.
 interface RawStreamingHistoryEntry {
   ts?: string;
   platform?: string | null;
@@ -10,6 +11,8 @@ interface RawStreamingHistoryEntry {
   spotify_track_uri?: string | null;
   episode_name?: string | null;
   episode_show_name?: string | null;
+  audiobook_title?: string | null;
+  audiobook_chapter_title?: string | null;
   reason_start?: string | null;
   reason_end?: string | null;
   shuffle?: boolean | null;
@@ -31,6 +34,7 @@ export interface ParsedPlayEvent {
   skipped: boolean | null;
   offline: boolean | null;
   isPodcast: boolean;
+  isAudiobook: boolean;
   /**
    * Non-nullable dedup key. SQL treats NULL != NULL, so a unique constraint on a
    * nullable trackUri silently stops deduping rows without one (podcasts, tracks
@@ -58,9 +62,12 @@ export function parseStreamingHistoryFile(raw: unknown, fileName: string): Parse
     if (Number.isNaN(playedAt.getTime())) continue;
 
     const isPodcast = Boolean(entry.episode_name) && !entry.master_metadata_track_name;
+    const isAudiobook = Boolean(entry.audiobook_title) && !entry.master_metadata_track_name;
     const trackUri = entry.spotify_track_uri ?? null;
-    const trackName = entry.master_metadata_track_name ?? entry.episode_name ?? null;
-    const artistName = entry.master_metadata_album_artist_name ?? entry.episode_show_name ?? null;
+    const trackName =
+      entry.master_metadata_track_name ?? entry.episode_name ?? entry.audiobook_chapter_title ?? null;
+    const artistName =
+      entry.master_metadata_album_artist_name ?? entry.episode_show_name ?? entry.audiobook_title ?? null;
 
     events.push({
       playedAt,
@@ -76,6 +83,7 @@ export function parseStreamingHistoryFile(raw: unknown, fileName: string): Parse
       skipped: entry.skipped ?? null,
       offline: entry.offline ?? null,
       isPodcast,
+      isAudiobook,
       dedupeKey: trackUri ?? `${trackName ?? ""}|${artistName ?? ""}`,
     });
   }

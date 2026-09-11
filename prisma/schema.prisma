@@ -24,6 +24,7 @@ model PlayEvent {
   skipped     Boolean?
   offline     Boolean?
   isPodcast   Boolean  @default(false)
+  isAudiobook Boolean  @default(false)
   importedAt  DateTime @default(now())
   // Non-nullable fallback for trackUri (SQL NULL != NULL means a nullable column
   // in a unique constraint silently stops deduping rows that lack it).

@@ -26,7 +26,14 @@ export interface CalendarDay {
 
 export type PlayRow = Pick<
   PlayEvent,
-  "playedAt" | "msPlayed" | "trackUri" | "trackName" | "artistName" | "isPodcast" | "skipped"
+  | "playedAt"
+  | "msPlayed"
+  | "trackUri"
+  | "trackName"
+  | "artistName"
+  | "isPodcast"
+  | "isAudiobook"
+  | "skipped"
 >;
 
 function toMinutes(ms: number): number {
@@ -56,7 +63,7 @@ export function computeSummary(rows: PlayRow[]): HistorySummary {
 export function computeTopTracks(rows: PlayRow[], topN = 20): RankedItem[] {
   const map = new Map<string, { name: string; subtitle: string | null; plays: number; ms: number }>();
   for (const row of rows) {
-    if (row.isPodcast || !row.trackName) continue;
+    if (row.isPodcast || row.isAudiobook || !row.trackName) continue;
     const key = row.trackUri ?? `${row.trackName}|${row.artistName ?? ""}`;
     const existing = map.get(key);
     if (existing) {
@@ -75,7 +82,7 @@ export function computeTopTracks(rows: PlayRow[], topN = 20): RankedItem[] {
 export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
   const map = new Map<string, { plays: number; ms: number }>();
   for (const row of rows) {
-    if (row.isPodcast || !row.artistName) continue;
+    if (row.isPodcast || row.isAudiobook || !row.artistName) continue;
     const existing = map.get(row.artistName);
     if (existing) {
       existing.plays += 1;
