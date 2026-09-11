@@ -150,7 +150,7 @@ export async function clearTokens(): Promise<void> {
   store.delete(COOKIE_EXPIRES_AT);
 }
 
-const EXPIRY_SKEW_MS = 60_000; // refresh a minute early to avoid edge-of-expiry failures
+export const EXPIRY_SKEW_MS = 60_000; // refresh a minute early to avoid edge-of-expiry failures
 
 /** Returns a valid access token, refreshing (and persisting) if it's expired or near-expiry. */
 export async function getValidAccessToken(): Promise<string | null> {

@@ -105,10 +105,17 @@ export async function getSavedTracksTotal(accessToken: string): Promise<number> 
 }
 
 interface CurrentUserResponse {
+  id: string;
   display_name: string | null;
 }
 
 export async function getCurrentUserDisplayName(accessToken: string): Promise<string> {
   const data = await spotifyFetch<CurrentUserResponse>("/me", accessToken);
   return data.display_name ?? "there";
+}
+
+/** The stable Spotify user id (not the display name) — used to key the stored account row. */
+export async function getCurrentUserId(accessToken: string): Promise<string> {
+  const data = await spotifyFetch<CurrentUserResponse>("/me", accessToken);
+  return data.id;
 }

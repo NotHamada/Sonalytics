@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // One row per play, parsed from Spotify's "Extended Streaming History" export.
@@ -33,4 +34,17 @@ model PlayEvent {
   @@unique([dedupeKey, playedAt])
   @@index([playedAt])
   @@index([artistName])
+}
+
+// Stores a refresh token server-side so the cron sync job (no browser, no cookies)
+// can authenticate as you. The browser session still uses httpOnly cookies as normal;
+// this is only for the background job.
+model SpotifyAccount {
+  id                   String   @id @default(cuid())
+  spotifyUserId        String   @unique
+  refreshToken         String
+  accessToken          String
+  accessTokenExpiresAt DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
