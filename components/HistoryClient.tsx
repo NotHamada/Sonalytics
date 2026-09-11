@@ -26,28 +26,34 @@ function RankedList({ title, items }: { title: string; items: RankedItem[] }) {
   const max = Math.max(1, ...items.map((i) => i.plays));
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-      <h2 className="mb-4 text-lg font-semibold text-neutral-100">{title}</h2>
+    <div className="glass-card p-5">
+      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       <ol className="space-y-3">
         {items.slice(0, 10).map((item, i) => (
           <li key={`${item.name}-${item.subtitle ?? ""}`}>
             <div className="mb-1 flex items-center gap-3">
-              <span className="w-5 text-sm text-neutral-500 tabular-nums">{i + 1}</span>
+              <span className="w-5 text-sm text-[var(--text-tertiary)] tabular-nums">{i + 1}</span>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-neutral-100">{item.name}</div>
-                {item.subtitle && <div className="truncate text-xs text-neutral-500">{item.subtitle}</div>}
+                <div className="truncate text-sm font-medium text-[var(--text-primary)]">{item.name}</div>
+                {item.subtitle && (
+                  <div className="truncate text-xs text-[var(--text-tertiary)]">{item.subtitle}</div>
+                )}
               </div>
-              <span className="shrink-0 text-xs tabular-nums text-neutral-500">{item.plays} plays</span>
+              <span className="shrink-0 text-xs tabular-nums text-[var(--text-tertiary)]">
+                {item.plays} plays
+              </span>
             </div>
-            <div className="ml-8 h-1.5 rounded-full bg-neutral-800">
+            <div className="ml-8 h-1.5 rounded-full bg-[var(--divider)]">
               <div
-                className="h-1.5 rounded-full bg-[#1DB954]"
+                className="h-1.5 rounded-full bg-[var(--accent)]"
                 style={{ width: `${(item.plays / max) * 100}%` }}
               />
             </div>
           </li>
         ))}
-        {items.length === 0 && <li className="px-2 py-4 text-sm text-neutral-500">Nothing here yet.</li>}
+        {items.length === 0 && (
+          <li className="px-2 py-4 text-sm text-[var(--text-tertiary)]">Nothing here yet.</li>
+        )}
       </ol>
     </div>
   );
@@ -100,13 +106,16 @@ export default function HistoryClient() {
   }, [preset, customStart, customEnd]);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
+    <div className="min-h-screen">
+      <header className="glass-pill sticky top-0 z-10 flex items-center justify-between px-6 py-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           Sonalytics
-          <span className="ml-2 font-normal text-neutral-500">— Full History</span>
+          <span className="ml-2 font-normal text-[var(--text-tertiary)]">— Full History</span>
         </h1>
-        <a href="/dashboard" className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors">
+        <a
+          href="/dashboard"
+          className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+        >
           Back to dashboard
         </a>
       </header>
@@ -126,21 +135,23 @@ export default function HistoryClient() {
         )}
 
         {state.status === "loading" && (
-          <div className="py-24 text-center text-neutral-500">Loading your imported history…</div>
+          <div className="py-24 text-center text-[var(--text-tertiary)]">
+            Loading your imported history…
+          </div>
         )}
 
         {state.status === "error" && (
-          <div className="rounded-md border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
             Couldn&apos;t load your history: {state.message}
           </div>
         )}
 
         {state.status === "ready" && state.data.empty && (
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-8 text-center">
-            <p className="text-neutral-400">No imported history yet.</p>
+          <div className="glass-card p-8 text-center">
+            <p className="text-[var(--text-secondary)]">No imported history yet.</p>
             <a
               href="/import"
-              className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition-colors"
+              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
               Import your data
             </a>
@@ -148,7 +159,7 @@ export default function HistoryClient() {
         )}
 
         {state.status === "ready" && !state.data.empty && state.data.emptyRange && (
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-8 text-center text-neutral-400">
+          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
             No plays in this time range.
           </div>
         )}

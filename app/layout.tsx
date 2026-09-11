@@ -38,7 +38,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <script dangerouslySetInnerHTML={{ __html: CANONICAL_HOST_SCRIPT }} />
         </head>
       )}
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="bg-mesh" aria-hidden="true">
+          <div className="blob-3" />
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

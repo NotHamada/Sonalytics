@@ -51,25 +51,33 @@ export default function DashboardClient() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
+    <div className="min-h-screen">
+      <header className="glass-pill sticky top-0 z-10 flex items-center justify-between px-6 py-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           Sonalytics
           {state.status === "ready" && (
-            <span className="ml-2 font-normal text-neutral-500">— {state.data.displayName}</span>
+            <span className="ml-2 font-normal text-[var(--text-tertiary)]">
+              — {state.data.displayName}
+            </span>
           )}
         </h1>
         <div className="flex items-center gap-4">
-          <a href="/history" className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors">
+          <a
+            href="/history"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
             Full History
           </a>
-          <a href="/import" className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors">
+          <a
+            href="/import"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
             Import
           </a>
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
-              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
             >
               Disconnect
             </button>
@@ -79,11 +87,13 @@ export default function DashboardClient() {
 
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-6">
         {state.status === "loading" && (
-          <div className="py-24 text-center text-neutral-500">Loading your listening data…</div>
+          <div className="py-24 text-center text-[var(--text-tertiary)]">
+            Loading your listening data…
+          </div>
         )}
 
         {state.status === "error" && (
-          <div className="rounded-md border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
             Couldn&apos;t load your data: {state.message}
           </div>
         )}
@@ -138,7 +148,7 @@ export default function DashboardClient() {
             />
 
             <div className="space-y-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
                 Discovery vs. Loyalty
               </h2>
               <CohortBoard title="Artists" cohorts={state.data.artistCohorts} />
@@ -147,7 +157,7 @@ export default function DashboardClient() {
 
             <GenrePairsCard pairs={state.data.genrePairs} />
 
-            <footer className="pt-4 text-center text-xs text-neutral-600">
+            <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">
               Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.
             </footer>
           </>
