@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
 import { computeSummary, computeTopTracks } from "@/lib/historyAnalytics";
 import { computeEntityStats } from "@/lib/entityStats";
-import { attachTrackImages } from "@/lib/spotifyImages";
+import { getTracksByIds } from "@/lib/spotify-api";
 
 const DAY_GRANULARITY_THRESHOLD_MS = 31 * 24 * 60 * 60 * 1000;
 
@@ -81,9 +81,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const rank = rankIndex >= 0 ? rankIndex + 1 : null;
   const totalRanked = allRankedTracks.length;
 
-  const [withImage] = await attachTrackImages(accessToken, [
-    { name: trackName, subtitle: artistName, trackUri, plays: stats.totalPlays, minutes: stats.totalMinutes },
-  ]);
+  // Single direct lookup (rather than the shared attachTrackImages helper) so we can also pull
+  // popularity/duration/album, which the other callers of that helper don't need.
+  let image: string | null = null;
+  let popularity: number | null = null;
+  let durationMs: number | null = null;
+  let albumName: string | null = null;
+  try {
+    const [track] = await getTracksByIds(accessToken, [id]);
+    if (track) {
+      image = track.album.images[0]?.url ?? null;
+      popularity = track.popularity;
+      durationMs = track.duration_ms;
+      albumName = track.album.name;
+    }
+  } catch {
+    // best-effort — the track still renders without this metadata if the lookup fails
+  }
 
   return NextResponse.json({
     empty: false,
@@ -91,7 +105,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     notFound: false,
     name: trackName,
     artistName,
-    image: withImage.image,
+    albumName,
+    durationMs,
+    popularity,
+    image,
     rank,
     totalRanked,
     ...stats,

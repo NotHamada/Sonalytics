@@ -16,6 +16,9 @@ interface TrackDetailData {
   notFound?: boolean;
   name?: string;
   artistName?: string | null;
+  albumName?: string | null;
+  durationMs?: number | null;
+  popularity?: number | null;
   image?: string | null;
   rank?: number | null;
   totalRanked?: number;
@@ -25,6 +28,13 @@ interface TrackDetailData {
   lastPlayed?: string | null;
   skipRate?: number;
   trend?: TrendPoint[];
+}
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 type LoadState =
@@ -180,6 +190,17 @@ export default function TrackDetailClient({ id }: { id: string }) {
                   >
                     {state.data.artistName}
                   </a>
+                )}
+                {(state.data.albumName || state.data.durationMs != null || state.data.popularity != null) && (
+                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                    {[
+                      state.data.albumName,
+                      state.data.durationMs != null ? formatDuration(state.data.durationMs) : null,
+                      state.data.popularity != null ? `Popularity ${state.data.popularity}/100` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                 )}
                 {state.data.rank != null && (
                   <p className="mt-2 text-xs text-[var(--text-tertiary)]">
