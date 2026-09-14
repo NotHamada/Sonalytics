@@ -109,7 +109,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 export default function HistoryClient() {
   const [dashboard, setDashboard] = useState<DashboardLoadState>({ status: "loading" });
   const [history, setHistory] = useState<HistoryLoadState>({ status: "loading" });
-  const [preset, setPreset] = useState<RangePreset>("all");
+  const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
