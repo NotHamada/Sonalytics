@@ -46,6 +46,12 @@ async function spotifyFetch<T>(path: string, accessToken: string): Promise<T> {
   }
 }
 
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+}
+
 interface TopItemsResponse<T> {
   items: T[];
 }
@@ -99,26 +105,32 @@ interface TracksResponse {
   tracks: (SpotifyTrack | null)[];
 }
 
-/** Batched track lookup (max 50 ids per Spotify's own limit) — used to get album art for
- *  tracks from imported history, since the export JSON itself has no image URLs. */
+/** Batched track lookup — used to get album art for tracks from imported history, since the
+ *  export JSON itself has no image URLs. Spotify caps each call at 50 ids, so any more than
+ *  that is split into parallel chunked requests, transparent to the caller. */
 export async function getTracksByIds(accessToken: string, ids: string[]): Promise<SpotifyTrack[]> {
   if (ids.length === 0) return [];
-  const data = await spotifyFetch<TracksResponse>(`/tracks?ids=${ids.join(",")}`, accessToken);
-  return data.tracks.filter((t): t is SpotifyTrack => t !== null);
+  const results = await Promise.all(
+    chunk(ids, 50).map((batch) => spotifyFetch<TracksResponse>(`/tracks?ids=${batch.join(",")}`, accessToken))
+  );
+  return results.flatMap((data) => data.tracks.filter((t): t is SpotifyTrack => t !== null));
 }
 
 interface ArtistsResponse {
   artists: (SpotifyArtist | null)[];
 }
 
-/** Batched artist lookup by id (max 50 ids per Spotify's own limit). Unlike a name search,
- *  this is unambiguous once the id is known — see attachArtistImages in the history route for
- *  how an artist's real id gets found from the extended-history export, which only has
- *  plain-text names. */
+/** Batched artist lookup by id. Unlike a name search, this is unambiguous once the id is known
+ *  — see attachArtistImages in the history route for how an artist's real id gets found from
+ *  the extended-history export, which only has plain-text names. Spotify caps each call at 50
+ *  ids, so any more than that is split into parallel chunked requests, transparent to the
+ *  caller. */
 export async function getArtistsByIds(accessToken: string, ids: string[]): Promise<SpotifyArtist[]> {
   if (ids.length === 0) return [];
-  const data = await spotifyFetch<ArtistsResponse>(`/artists?ids=${ids.join(",")}`, accessToken);
-  return data.artists.filter((a): a is SpotifyArtist => a !== null);
+  const results = await Promise.all(
+    chunk(ids, 50).map((batch) => spotifyFetch<ArtistsResponse>(`/artists?ids=${batch.join(",")}`, accessToken))
+  );
+  return results.flatMap((data) => data.artists.filter((a): a is SpotifyArtist => a !== null));
 }
 
 interface SavedTracksResponse {

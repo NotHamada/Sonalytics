@@ -5,6 +5,7 @@ import type { DashboardData } from "@/lib/types";
 import type { CalendarDay, HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
 import StatCard from "./StatCard";
 import TopList from "./TopList";
+import TopGrid from "./TopGrid";
 import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
 import CohortBoard from "./CohortBoard";
@@ -22,7 +23,6 @@ interface HistoryData {
   summary?: HistorySummary;
   topTracks?: RankedItemWithImage[];
   topArtists?: RankedItemWithImage[];
-  topArtistsByMinutes?: RankedItemWithImage[];
   trend?: TrendPoint[];
   calendar?: CalendarDay[];
 }
@@ -36,67 +36,6 @@ type HistoryLoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; data: HistoryData };
-
-function RankedList({
-  title,
-  items,
-  showImages = false,
-  imageShape = "square",
-  metric = "plays",
-}: {
-  title: string;
-  items: RankedItemWithImage[];
-  showImages?: boolean;
-  imageShape?: "square" | "circle";
-  metric?: "plays" | "minutes";
-}) {
-  const valueOf = (item: RankedItemWithImage) => (metric === "minutes" ? item.minutes : item.plays);
-  const max = Math.max(1, ...items.map(valueOf));
-  const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-lg";
-
-  return (
-    <div className="glass-card p-5">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
-      <ol className="space-y-3">
-        {items.slice(0, 10).map((item, i) => (
-          <li key={`${item.name}-${item.subtitle ?? ""}`}>
-            <div className="mb-1 flex items-center gap-3">
-              <span className="w-5 shrink-0 text-sm text-[var(--text-tertiary)] tabular-nums">{i + 1}</span>
-              {showImages &&
-                (item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className={`h-10 w-10 shrink-0 object-cover ${imageClass}`} />
-                ) : (
-                  <div className={`h-10 w-10 shrink-0 bg-[var(--hover)] ${imageClass}`} />
-                ))}
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-[var(--text-primary)]">{item.name}</div>
-                {item.subtitle && (
-                  <div className="truncate text-xs text-[var(--text-tertiary)]">{item.subtitle}</div>
-                )}
-              </div>
-              <span className="shrink-0 text-xs tabular-nums text-[var(--text-tertiary)]">
-                {metric === "minutes" ? `${Math.round(item.minutes)} min` : `${item.plays} plays`}
-              </span>
-            </div>
-            <div
-              className="h-1.5 rounded-full bg-[var(--divider)]"
-              style={{ marginLeft: showImages ? "84px" : "32px" }}
-            >
-              <div
-                className="h-1.5 rounded-full bg-[var(--accent)]"
-                style={{ width: `${(valueOf(item) / max) * 100}%` }}
-              />
-            </div>
-          </li>
-        ))}
-        {items.length === 0 && (
-          <li className="px-2 py-4 text-sm text-[var(--text-tertiary)]">Nothing here yet.</li>
-        )}
-      </ol>
-    </div>
-  );
-}
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -386,21 +325,9 @@ export default function HistoryClient() {
                   emptyMessage="Not enough data yet."
                 />
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                  <RankedList title="Top Tracks" items={history.data.topTracks ?? []} showImages />
-                  <RankedList
-                    title="Top Artists"
-                    items={history.data.topArtists ?? []}
-                    showImages
-                    imageShape="circle"
-                  />
-                  <RankedList
-                    title="Top Artists by Minutes"
-                    items={history.data.topArtistsByMinutes ?? []}
-                    showImages
-                    imageShape="circle"
-                    metric="minutes"
-                  />
+                <div className="space-y-6">
+                  <TopGrid title="Top Tracks" items={history.data.topTracks ?? []} />
+                  <TopGrid title="Top Artists" items={history.data.topArtists ?? []} imageShape="circle" />
                 </div>
               </div>
             )}

@@ -7,7 +7,6 @@ import {
   computeCalendar,
   computeSummary,
   computeTopArtists,
-  computeTopArtistsByMinutes,
   computeTopTracks,
   computeTrend,
   type RankedItem,
@@ -19,8 +18,9 @@ interface RankedItemWithImage extends RankedItem {
   image: string | null;
 }
 
-/** The extended-history export has no image URLs, so top tracks need a live lookup —
- *  one batched call (Spotify allows up to 50 ids) rather than one request per track. */
+/** The extended-history export has no image URLs, so top tracks need a live lookup — batched
+ *  (getTracksByIds chunks internally at Spotify's 50-id limit) rather than one request per
+ *  track. */
 async function attachTrackImages(
   accessToken: string,
   tracks: RankedItem[]
@@ -36,9 +36,8 @@ async function attachTrackImages(
   let imageById = new Map<string, string | null>();
   try {
     const fetched = await getTracksByIds(accessToken, ids);
-    imageById = new Map(
-      fetched.map((track) => [track.id, track.album.images[track.album.images.length - 1]?.url ?? null])
-    );
+    // Spotify orders images largest-first; [0] is the highest resolution available.
+    imageById = new Map(fetched.map((track) => [track.id, track.album.images[0]?.url ?? null]));
   } catch {
     // best-effort — tracks just render without art if this fails
   }
@@ -81,7 +80,8 @@ async function attachArtistImages(
   try {
     const resolvedIds = Array.from(new Set(artistIdByName.values()));
     const fetchedArtists = await getArtistsByIds(accessToken, resolvedIds);
-    imageById = new Map(fetchedArtists.map((a) => [a.id, a.images[a.images.length - 1]?.url ?? null]));
+    // Spotify orders images largest-first; [0] is the highest resolution available.
+    imageById = new Map(fetchedArtists.map((a) => [a.id, a.images[0]?.url ?? null]));
   } catch {
     // best-effort
   }
@@ -147,16 +147,6 @@ export async function GET(request: NextRequest) {
     new Date(summary.latestPlay!).getTime() - new Date(summary.earliestPlay!).getTime();
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
-  const topArtistsRaw = computeTopArtists(rows, 10);
-  const topArtistsByMinutesRaw = computeTopArtistsByMinutes(rows, 10);
-
-  // The two artist rankings usually overlap heavily (same artists, different order), so resolve
-  // each unique artist's image only once across both lists.
-  const uniqueArtists = new Map<string, RankedItem>();
-  for (const a of [...topArtistsRaw, ...topArtistsByMinutesRaw]) {
-    if (!uniqueArtists.has(a.name)) uniqueArtists.set(a.name, a);
-  }
-
   // One representative track per artist (their most recent play is as good as any), used to
   // resolve the artist's real Spotify id — see attachArtistImages for why.
   const representativeTrackUriByArtist = new Map<string, string>();
@@ -166,17 +156,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const [topTracks, uniqueArtistsWithImages] = await Promise.all([
-    attachTrackImages(accessToken, computeTopTracks(rows)),
-    attachArtistImages(accessToken, Array.from(uniqueArtists.values()), representativeTrackUriByArtist),
+  // "All" distinct tracks/artists — capped only by the number of rows (a distinct-item count
+  // can never exceed the row count), which is to say not meaningfully capped at all. Image
+  // lookups for the full list are handled transparently in chunks of 50 (Spotify's own batch
+  // limit) inside getTracksByIds/getArtistsByIds, so every item gets a photo, not just the
+  // first page.
+  const [topTracks, topArtists] = await Promise.all([
+    attachTrackImages(accessToken, computeTopTracks(rows, rows.length)),
+    attachArtistImages(accessToken, computeTopArtists(rows, rows.length), representativeTrackUriByArtist),
   ]);
-
-  const imageByArtist = new Map(uniqueArtistsWithImages.map((a) => [a.name, a.image]));
-  const topArtists = topArtistsRaw.map((a) => ({ ...a, image: imageByArtist.get(a.name) ?? null }));
-  const topArtistsByMinutes = topArtistsByMinutesRaw.map((a) => ({
-    ...a,
-    image: imageByArtist.get(a.name) ?? null,
-  }));
 
   return NextResponse.json({
     empty: false,
@@ -184,7 +172,6 @@ export async function GET(request: NextRequest) {
     summary,
     topTracks,
     topArtists,
-    topArtistsByMinutes,
     trend: computeTrend(rows, granularity),
     calendar: computeCalendar(rows),
   });
