@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import type { DashboardData } from "@/lib/types";
 import type { HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
 import StatCard from "./StatCard";
-import TopList from "./TopList";
 import TopGrid from "./TopGrid";
 import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
@@ -180,62 +179,30 @@ export default function HistoryClient() {
         )}
 
         {dashboard.status === "ready" && (
-          <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-              <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
-              <StatCard
-                label="Avg. Track Popularity"
-                value={`${dashboard.data.popularitySummary.average}/100`}
-                hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
-              />
-              <StatCard
-                label="Deep Cuts"
-                value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
-                hint="Tracks under 40 popularity"
-              />
-              <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
-              <StatCard
-                label="Taste Diversity"
-                value={dashboard.data.diversityIndex.label}
-                hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
-              />
-              <StatCard
-                label="Era vs. Popularity"
-                value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
-                hint={dashboard.data.popularityEraCorrelation.interpretation}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <TopList title="Top Artists" entries={dashboard.data.topArtistsByRange} />
-              <TopList title="Top Tracks" entries={dashboard.data.topTracksByRange} />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <GenreChart data={dashboard.data.genreDistribution} />
-              <HistogramChart
-                title="Popularity Distribution"
-                data={dashboard.data.popularityHistogram}
-                barName="Tracks"
-                emptyMessage="Not enough top tracks to build a distribution yet."
-              />
-            </div>
-
-            <HistogramChart
-              title="Taste by Decade"
-              data={dashboard.data.releaseEraHistogram}
-              barName="Tracks"
-              emptyMessage="Not enough release-date data yet."
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
+            <StatCard
+              label="Avg. Track Popularity"
+              value={`${dashboard.data.popularitySummary.average}/100`}
+              hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
             />
-
-            <div className="space-y-6">
-              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
-              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
-              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
-            </div>
-
-            <GenrePairsCard pairs={dashboard.data.genrePairs} />
-          </>
+            <StatCard
+              label="Deep Cuts"
+              value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
+              hint="Tracks under 40 popularity"
+            />
+            <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
+            <StatCard
+              label="Taste Diversity"
+              value={dashboard.data.diversityIndex.label}
+              hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
+            />
+            <StatCard
+              label="Era vs. Popularity"
+              value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
+              hint={dashboard.data.popularityEraCorrelation.interpretation}
+            />
+          </div>
         )}
 
         <div className="space-y-6 pt-4">
@@ -328,6 +295,35 @@ export default function HistoryClient() {
               </div>
             )}
         </div>
+
+        {dashboard.status === "ready" && (
+          <>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <GenreChart data={dashboard.data.genreDistribution} />
+              <HistogramChart
+                title="Popularity Distribution"
+                data={dashboard.data.popularityHistogram}
+                barName="Tracks"
+                emptyMessage="Not enough top tracks to build a distribution yet."
+              />
+            </div>
+
+            <HistogramChart
+              title="Taste by Decade"
+              data={dashboard.data.releaseEraHistogram}
+              barName="Tracks"
+              emptyMessage="Not enough release-date data yet."
+            />
+
+            <div className="space-y-6">
+              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
+              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
+              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
+            </div>
+
+            <GenrePairsCard pairs={dashboard.data.genrePairs} />
+          </>
+        )}
 
         <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">
           Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.
