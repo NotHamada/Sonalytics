@@ -4,7 +4,6 @@ import { getArtistsByIds, getTracksByIds } from "@/lib/spotify-api";
 import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
 import {
-  computeCalendar,
   computeSummary,
   computeTopArtists,
   computeTopTracks,
@@ -173,6 +172,5 @@ export async function GET(request: NextRequest) {
     topTracks,
     topArtists,
     trend: computeTrend(rows, granularity),
-    calendar: computeCalendar(rows),
   });
 }

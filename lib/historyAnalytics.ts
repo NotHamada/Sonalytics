@@ -21,11 +21,6 @@ export interface TrendPoint {
   minutes: number;
 }
 
-export interface CalendarDay {
-  date: string;
-  minutes: number;
-}
-
 export interface HourPoint {
   hour: number;
   label: string;
@@ -165,17 +160,6 @@ export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): Tre
       label: granularity === "day" ? key.slice(5) : key.slice(2),
       minutes: Math.round(ms / 60000),
     }));
-}
-
-export function computeCalendar(rows: PlayRow[]): CalendarDay[] {
-  const map = new Map<string, number>();
-  for (const row of rows) {
-    const day = row.playedAt.toISOString().slice(0, 10);
-    map.set(day, (map.get(day) ?? 0) + row.msPlayed);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, ms]) => ({ date, minutes: Math.round(ms / 60000) }));
 }
 
 const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {

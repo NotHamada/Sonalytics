@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DashboardData } from "@/lib/types";
-import type { CalendarDay, HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
+import type { HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
 import StatCard from "./StatCard";
 import TopList from "./TopList";
 import TopGrid from "./TopGrid";
@@ -10,7 +10,6 @@ import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
 import CohortBoard from "./CohortBoard";
 import GenrePairsCard from "./GenrePairsCard";
-import CalendarHeatmap from "./CalendarHeatmap";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface RankedItemWithImage extends RankedItem {
@@ -24,7 +23,6 @@ interface HistoryData {
   topTracks?: RankedItemWithImage[];
   topArtists?: RankedItemWithImage[];
   trend?: TrendPoint[];
-  calendar?: CalendarDay[];
 }
 
 type DashboardLoadState =
@@ -315,8 +313,6 @@ export default function HistoryClient() {
                     }
                   />
                 </div>
-
-                <CalendarHeatmap data={history.data.calendar ?? []} />
 
                 <HistogramChart
                   title="Minutes Over Time"
