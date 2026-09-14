@@ -107,17 +107,18 @@ export async function getTracksByIds(accessToken: string, ids: string[]): Promis
   return data.tracks.filter((t): t is SpotifyTrack => t !== null);
 }
 
-interface ArtistSearchResponse {
-  artists: { items: SpotifyArtist[] };
+interface ArtistsResponse {
+  artists: (SpotifyArtist | null)[];
 }
 
-/** Best-effort artist lookup by name — the extended-history export has no artist ids
- *  (only plain-text names), so getting a photo means searching for it. Uses Spotify's
- *  artist: field filter for a precise match and takes the top result. */
-export async function searchArtistByName(accessToken: string, name: string): Promise<SpotifyArtist | null> {
-  const q = encodeURIComponent(`artist:"${name}"`);
-  const data = await spotifyFetch<ArtistSearchResponse>(`/search?q=${q}&type=artist&limit=1`, accessToken);
-  return data.artists.items[0] ?? null;
+/** Batched artist lookup by id (max 50 ids per Spotify's own limit). Unlike a name search,
+ *  this is unambiguous once the id is known — see attachArtistImages in the history route for
+ *  how an artist's real id gets found from the extended-history export, which only has
+ *  plain-text names. */
+export async function getArtistsByIds(accessToken: string, ids: string[]): Promise<SpotifyArtist[]> {
+  if (ids.length === 0) return [];
+  const data = await spotifyFetch<ArtistsResponse>(`/artists?ids=${ids.join(",")}`, accessToken);
+  return data.artists.filter((a): a is SpotifyArtist => a !== null);
 }
 
 interface SavedTracksResponse {
