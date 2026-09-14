@@ -41,7 +41,7 @@ function plural(n: number, word: string): string {
 
 export default function AnalysisClient() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
-  const [preset, setPreset] = useState<RangePreset>("all");
+  const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 

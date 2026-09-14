@@ -21,11 +21,6 @@ export interface TrendPoint {
   minutes: number;
 }
 
-export interface CalendarDay {
-  date: string;
-  minutes: number;
-}
-
 export interface HourPoint {
   hour: number;
   label: string;
@@ -150,33 +145,6 @@ export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
     }));
 }
 
-/** Same artist aggregation as computeTopArtists, ranked by total minutes listened instead of
- *  play count — an artist with fewer, longer plays can outrank one with many short/skipped
- *  plays here even though computeTopArtists would rank them the other way. */
-export function computeTopArtistsByMinutes(rows: PlayRow[], topN = 20): RankedItem[] {
-  const map = new Map<string, { plays: number; ms: number }>();
-  for (const row of rows) {
-    if (row.isPodcast || row.isAudiobook || !row.artistName) continue;
-    const existing = map.get(row.artistName);
-    if (existing) {
-      existing.plays += 1;
-      existing.ms += row.msPlayed;
-    } else {
-      map.set(row.artistName, { plays: 1, ms: row.msPlayed });
-    }
-  }
-  return Array.from(map.entries())
-    .sort(([, a], [, b]) => b.ms - a.ms)
-    .slice(0, topN)
-    .map(([name, v]) => ({
-      name,
-      subtitle: null,
-      trackUri: null,
-      plays: v.plays,
-      minutes: toMinutes(v.ms),
-    }));
-}
-
 /** Buckets by day for short ranges, by month for longer ones — a single bar per day is
  *  fine for a week, useless for three years, so the caller picks based on range span. */
 export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): TrendPoint[] {
@@ -192,17 +160,6 @@ export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): Tre
       label: granularity === "day" ? key.slice(5) : key.slice(2),
       minutes: Math.round(ms / 60000),
     }));
-}
-
-export function computeCalendar(rows: PlayRow[]): CalendarDay[] {
-  const map = new Map<string, number>();
-  for (const row of rows) {
-    const day = row.playedAt.toISOString().slice(0, 10);
-    map.set(day, (map.get(day) ?? 0) + row.msPlayed);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, ms]) => ({ date, minutes: Math.round(ms / 60000) }));
 }
 
 const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {

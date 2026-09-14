@@ -15,7 +15,8 @@ export function artistsToTopEntries(artists: SpotifyArtist[]): TopEntryDTO[] {
   return artists.map((artist) => ({
     id: artist.id,
     name: artist.name,
-    image: artist.images[artist.images.length - 1]?.url ?? null,
+    // Spotify orders images largest-first; [0] is the highest resolution available.
+    image: artist.images[0]?.url ?? null,
     subtitle: artist.genres[0] ?? "",
     url: artist.external_urls.spotify,
   }));
@@ -25,7 +26,8 @@ export function tracksToTopEntries(tracks: SpotifyTrack[]): TopEntryDTO[] {
   return tracks.map((track) => ({
     id: track.id,
     name: track.name,
-    image: track.album.images[track.album.images.length - 1]?.url ?? null,
+    // Spotify orders images largest-first; [0] is the highest resolution available.
+    image: track.album.images[0]?.url ?? null,
     subtitle: track.artists.map((a) => a.name).join(", "),
     url: track.external_urls.spotify,
   }));

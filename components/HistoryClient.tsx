@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { DashboardData } from "@/lib/types";
-import type { CalendarDay, HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
+import type { HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
 import StatCard from "./StatCard";
-import TopList from "./TopList";
+import TopGrid from "./TopGrid";
 import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
 import CohortBoard from "./CohortBoard";
 import GenrePairsCard from "./GenrePairsCard";
-import CalendarHeatmap from "./CalendarHeatmap";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface RankedItemWithImage extends RankedItem {
@@ -22,9 +21,7 @@ interface HistoryData {
   summary?: HistorySummary;
   topTracks?: RankedItemWithImage[];
   topArtists?: RankedItemWithImage[];
-  topArtistsByMinutes?: RankedItemWithImage[];
   trend?: TrendPoint[];
-  calendar?: CalendarDay[];
 }
 
 type DashboardLoadState =
@@ -37,67 +34,6 @@ type HistoryLoadState =
   | { status: "error"; message: string }
   | { status: "ready"; data: HistoryData };
 
-function RankedList({
-  title,
-  items,
-  showImages = false,
-  imageShape = "square",
-  metric = "plays",
-}: {
-  title: string;
-  items: RankedItemWithImage[];
-  showImages?: boolean;
-  imageShape?: "square" | "circle";
-  metric?: "plays" | "minutes";
-}) {
-  const valueOf = (item: RankedItemWithImage) => (metric === "minutes" ? item.minutes : item.plays);
-  const max = Math.max(1, ...items.map(valueOf));
-  const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-lg";
-
-  return (
-    <div className="glass-card p-5">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
-      <ol className="space-y-3">
-        {items.slice(0, 10).map((item, i) => (
-          <li key={`${item.name}-${item.subtitle ?? ""}`}>
-            <div className="mb-1 flex items-center gap-3">
-              <span className="w-5 shrink-0 text-sm text-[var(--text-tertiary)] tabular-nums">{i + 1}</span>
-              {showImages &&
-                (item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className={`h-10 w-10 shrink-0 object-cover ${imageClass}`} />
-                ) : (
-                  <div className={`h-10 w-10 shrink-0 bg-[var(--hover)] ${imageClass}`} />
-                ))}
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-[var(--text-primary)]">{item.name}</div>
-                {item.subtitle && (
-                  <div className="truncate text-xs text-[var(--text-tertiary)]">{item.subtitle}</div>
-                )}
-              </div>
-              <span className="shrink-0 text-xs tabular-nums text-[var(--text-tertiary)]">
-                {metric === "minutes" ? `${Math.round(item.minutes)} min` : `${item.plays} plays`}
-              </span>
-            </div>
-            <div
-              className="h-1.5 rounded-full bg-[var(--divider)]"
-              style={{ marginLeft: showImages ? "84px" : "32px" }}
-            >
-              <div
-                className="h-1.5 rounded-full bg-[var(--accent)]"
-                style={{ width: `${(valueOf(item) / max) * 100}%` }}
-              />
-            </div>
-          </li>
-        ))}
-        {items.length === 0 && (
-          <li className="px-2 py-4 text-sm text-[var(--text-tertiary)]">Nothing here yet.</li>
-        )}
-      </ol>
-    </div>
-  );
-}
-
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
@@ -109,7 +45,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 export default function HistoryClient() {
   const [dashboard, setDashboard] = useState<DashboardLoadState>({ status: "loading" });
   const [history, setHistory] = useState<HistoryLoadState>({ status: "loading" });
-  const [preset, setPreset] = useState<RangePreset>("all");
+  const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
@@ -243,62 +179,30 @@ export default function HistoryClient() {
         )}
 
         {dashboard.status === "ready" && (
-          <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-              <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
-              <StatCard
-                label="Avg. Track Popularity"
-                value={`${dashboard.data.popularitySummary.average}/100`}
-                hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
-              />
-              <StatCard
-                label="Deep Cuts"
-                value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
-                hint="Tracks under 40 popularity"
-              />
-              <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
-              <StatCard
-                label="Taste Diversity"
-                value={dashboard.data.diversityIndex.label}
-                hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
-              />
-              <StatCard
-                label="Era vs. Popularity"
-                value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
-                hint={dashboard.data.popularityEraCorrelation.interpretation}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <TopList title="Top Artists" entries={dashboard.data.topArtistsByRange} />
-              <TopList title="Top Tracks" entries={dashboard.data.topTracksByRange} />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <GenreChart data={dashboard.data.genreDistribution} />
-              <HistogramChart
-                title="Popularity Distribution"
-                data={dashboard.data.popularityHistogram}
-                barName="Tracks"
-                emptyMessage="Not enough top tracks to build a distribution yet."
-              />
-            </div>
-
-            <HistogramChart
-              title="Taste by Decade"
-              data={dashboard.data.releaseEraHistogram}
-              barName="Tracks"
-              emptyMessage="Not enough release-date data yet."
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
+            <StatCard
+              label="Avg. Track Popularity"
+              value={`${dashboard.data.popularitySummary.average}/100`}
+              hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
             />
-
-            <div className="space-y-6">
-              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
-              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
-              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
-            </div>
-
-            <GenrePairsCard pairs={dashboard.data.genrePairs} />
-          </>
+            <StatCard
+              label="Deep Cuts"
+              value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
+              hint="Tracks under 40 popularity"
+            />
+            <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
+            <StatCard
+              label="Taste Diversity"
+              value={dashboard.data.diversityIndex.label}
+              hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
+            />
+            <StatCard
+              label="Era vs. Popularity"
+              value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
+              hint={dashboard.data.popularityEraCorrelation.interpretation}
+            />
+          </div>
         )}
 
         <div className="space-y-6 pt-4">
@@ -377,8 +281,6 @@ export default function HistoryClient() {
                   />
                 </div>
 
-                <CalendarHeatmap data={history.data.calendar ?? []} />
-
                 <HistogramChart
                   title="Minutes Over Time"
                   data={(history.data.trend ?? []).map((t) => ({ label: t.label, count: t.minutes }))}
@@ -386,25 +288,42 @@ export default function HistoryClient() {
                   emptyMessage="Not enough data yet."
                 />
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                  <RankedList title="Top Tracks" items={history.data.topTracks ?? []} showImages />
-                  <RankedList
-                    title="Top Artists"
-                    items={history.data.topArtists ?? []}
-                    showImages
-                    imageShape="circle"
-                  />
-                  <RankedList
-                    title="Top Artists by Minutes"
-                    items={history.data.topArtistsByMinutes ?? []}
-                    showImages
-                    imageShape="circle"
-                    metric="minutes"
-                  />
+                <div className="space-y-6">
+                  <TopGrid title="Top Tracks" items={history.data.topTracks ?? []} />
+                  <TopGrid title="Top Artists" items={history.data.topArtists ?? []} imageShape="circle" />
                 </div>
               </div>
             )}
         </div>
+
+        {dashboard.status === "ready" && (
+          <>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <GenreChart data={dashboard.data.genreDistribution} />
+              <HistogramChart
+                title="Popularity Distribution"
+                data={dashboard.data.popularityHistogram}
+                barName="Tracks"
+                emptyMessage="Not enough top tracks to build a distribution yet."
+              />
+            </div>
+
+            <HistogramChart
+              title="Taste by Decade"
+              data={dashboard.data.releaseEraHistogram}
+              barName="Tracks"
+              emptyMessage="Not enough release-date data yet."
+            />
+
+            <div className="space-y-6">
+              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
+              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
+              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
+            </div>
+
+            <GenrePairsCard pairs={dashboard.data.genrePairs} />
+          </>
+        )}
 
         <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">
           Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.

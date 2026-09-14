@@ -30,7 +30,7 @@ function formatHour(hour: number): string {
 
 export default function InsightsClient() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
-  const [preset, setPreset] = useState<RangePreset>("all");
+  const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
