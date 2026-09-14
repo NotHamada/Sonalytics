@@ -100,6 +100,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     notFound: false,
     name: artistName,
     image: withImage.image,
+    genres: withImage.genres,
+    followers: withImage.followers,
     rank,
     totalRanked,
     distinctTracks,

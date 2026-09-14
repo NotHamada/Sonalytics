@@ -3,6 +3,8 @@ import type { RankedItem } from "./historyAnalytics";
 
 export interface RankedItemWithImage extends RankedItem {
   image: string | null;
+  genres?: string[];
+  followers?: number | null;
 }
 
 /** The extended-history export has no image URLs, so tracks need a live lookup — batched
@@ -64,19 +66,30 @@ export async function attachArtistImages(
     // best-effort — artists just render without art if this fails
   }
 
-  let imageById = new Map<string, string | null>();
+  let detailsById = new Map<string, { image: string | null; genres: string[]; followers: number | null }>();
   try {
     const resolvedIds = Array.from(new Set(artistIdByName.values()));
     const fetchedArtists = await getArtistsByIds(accessToken, resolvedIds);
     // Spotify orders images largest-first; [0] is the highest resolution available.
-    imageById = new Map(fetchedArtists.map((a) => [a.id, a.images[0]?.url ?? null]));
+    detailsById = new Map(
+      fetchedArtists.map((a) => [
+        a.id,
+        { image: a.images[0]?.url ?? null, genres: a.genres, followers: a.followers?.total ?? null },
+      ])
+    );
   } catch {
     // best-effort
   }
 
   return artists.map((a) => {
     const artistId = artistIdByName.get(a.name.toLowerCase());
-    return { ...a, image: artistId ? (imageById.get(artistId) ?? null) : null };
+    const details = artistId ? detailsById.get(artistId) : undefined;
+    return {
+      ...a,
+      image: details?.image ?? null,
+      genres: details?.genres ?? [],
+      followers: details?.followers ?? null,
+    };
   });
 }
 

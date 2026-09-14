@@ -22,6 +22,8 @@ interface ArtistDetailData {
   notFound?: boolean;
   name?: string;
   image?: string | null;
+  genres?: string[];
+  followers?: number | null;
   rank?: number | null;
   totalRanked?: number;
   distinctTracks?: number;
@@ -38,6 +40,12 @@ type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; data: ArtistDetailData };
+
+function formatFollowers(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
 
 export default function ArtistDetailClient({ name }: { name: string }) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
@@ -184,6 +192,16 @@ export default function ArtistDetailClient({ name }: { name: string }) {
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
+                {(state.data.followers != null || (state.data.genres && state.data.genres.length > 0)) && (
+                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                    {[
+                      state.data.followers != null ? `${formatFollowers(state.data.followers)} followers` : null,
+                      state.data.genres && state.data.genres.length > 0 ? state.data.genres.join(", ") : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
                 {state.data.rank != null && (
                   <p className="mt-2 text-xs text-[var(--text-tertiary)]">
                     #{state.data.rank} of {state.data.totalRanked} artists
