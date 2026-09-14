@@ -89,7 +89,10 @@ export default function TopGrid({
         <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-5">
           {visible.map((item, i) => {
             const href = linkType === "track" ? trackHref(item) : linkType === "artist" ? artistHref(item) : null;
-            const key = `${item.name}-${item.subtitle ?? ""}`;
+            // name+subtitle isn't actually unique — the same title/artist can appear more than
+            // once (a track released on multiple albums gets a distinct Spotify id per
+            // release), so fold in the item's position too, which is always unique per render.
+            const key = `${start + i}-${item.trackUri ?? item.name}`;
 
             const content = (
               <>
