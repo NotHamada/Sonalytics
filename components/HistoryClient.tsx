@@ -289,8 +289,13 @@ export default function HistoryClient() {
                 />
 
                 <div className="space-y-6">
-                  <TopGrid title="Top Tracks" items={history.data.topTracks ?? []} />
-                  <TopGrid title="Top Artists" items={history.data.topArtists ?? []} imageShape="circle" />
+                  <TopGrid title="Top Tracks" items={history.data.topTracks ?? []} linkType="track" />
+                  <TopGrid
+                    title="Top Artists"
+                    items={history.data.topArtists ?? []}
+                    imageShape="circle"
+                    linkType="artist"
+                  />
                 </div>
               </div>
             )}

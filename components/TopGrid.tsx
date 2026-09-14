@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { RankedItem } from "@/lib/historyAnalytics";
 
 interface RankedItemWithImage extends RankedItem {
@@ -9,16 +10,29 @@ interface RankedItemWithImage extends RankedItem {
 
 const PAGE_SIZE = 5;
 
+/** Track ids are the last segment of the Spotify URI ("spotify:track:abc123" -> "abc123"). */
+function trackHref(item: RankedItemWithImage): string | null {
+  const id = item.trackUri?.split(":").pop();
+  return id ? `/track/${id}` : null;
+}
+
+function artistHref(item: RankedItemWithImage): string {
+  return `/artist/${encodeURIComponent(item.name)}`;
+}
+
 export default function TopGrid({
   title,
   items,
   imageShape = "square",
   metric = "plays",
+  linkType,
 }: {
   title: string;
   items: RankedItemWithImage[];
   imageShape?: "square" | "circle";
   metric?: "plays" | "minutes";
+  /** When set, each card links to that item's detail page. */
+  linkType?: "track" | "artist";
 }) {
   const [page, setPage] = useState(0);
   const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-xl";
@@ -73,30 +87,47 @@ export default function TopGrid({
         <p className="px-2 py-4 text-sm text-[var(--text-tertiary)]">Nothing here yet.</p>
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-5">
-          {visible.map((item, i) => (
-            <div key={`${item.name}-${item.subtitle ?? ""}`} className="min-w-0">
-              <div
-                className={`mb-2 aspect-square w-full overflow-hidden bg-[var(--hover)] ${imageClass}`}
-              >
-                {item.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-full w-full object-cover" />
-                )}
+          {visible.map((item, i) => {
+            const href = linkType === "track" ? trackHref(item) : linkType === "artist" ? artistHref(item) : null;
+            const key = `${item.name}-${item.subtitle ?? ""}`;
+
+            const content = (
+              <>
+                <div
+                  className={`mb-2 aspect-square w-full overflow-hidden bg-[var(--hover)] transition-transform ${href ? "group-hover:scale-[1.03]" : ""} ${imageClass}`}
+                >
+                  {item.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.image} alt="" className="h-full w-full object-cover" />
+                  )}
+                </div>
+                <div
+                  className={`truncate text-sm font-semibold text-[var(--text-primary)] ${href ? "group-hover:text-[var(--accent)]" : ""}`}
+                >
+                  {start + i + 1}. {item.name}
+                </div>
+                <div className="truncate text-xs text-[var(--text-tertiary)]">
+                  {(() => {
+                    const minutesText = `${Math.round(item.minutes)} min`;
+                    const playsText = `${item.plays} ${item.plays === 1 ? "play" : "plays"}`;
+                    const primary = metric === "minutes" ? minutesText : playsText;
+                    const secondary = metric === "minutes" ? playsText : minutesText;
+                    return `${primary} · ${secondary}${item.subtitle ? ` · ${item.subtitle}` : ""}`;
+                  })()}
+                </div>
+              </>
+            );
+
+            return href ? (
+              <Link key={key} href={href} className="group block min-w-0">
+                {content}
+              </Link>
+            ) : (
+              <div key={key} className="min-w-0">
+                {content}
               </div>
-              <div className="truncate text-sm font-semibold text-[var(--text-primary)]">
-                {start + i + 1}. {item.name}
-              </div>
-              <div className="truncate text-xs text-[var(--text-tertiary)]">
-                {(() => {
-                  const minutesText = `${Math.round(item.minutes)} min`;
-                  const playsText = `${item.plays} ${item.plays === 1 ? "play" : "plays"}`;
-                  const primary = metric === "minutes" ? minutesText : playsText;
-                  const secondary = metric === "minutes" ? playsText : minutesText;
-                  return `${primary} · ${secondary}${item.subtitle ? ` · ${item.subtitle}` : ""}`;
-                })()}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
