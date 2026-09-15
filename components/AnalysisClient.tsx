@@ -104,6 +104,12 @@ export default function AnalysisClient() {
             Insights
           </a>
           <a
+            href="/reports"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Reports
+          </a>
+          <a
             href="/import"
             className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >

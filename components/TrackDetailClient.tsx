@@ -111,6 +111,12 @@ export default function TrackDetailClient({ id }: { id: string }) {
           >
             Analysis
           </a>
+          <a
+            href="/reports"
+            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Reports
+          </a>
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
