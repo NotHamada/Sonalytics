@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { RankedItem } from "@/lib/historyAnalytics";
 import HistogramChart from "./HistogramChart";
 import StatCard from "./StatCard";
+import MiniPlayer from "./MiniPlayer";
 import TopGrid from "./TopGrid";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
@@ -24,6 +25,7 @@ interface ArtistDetailData {
   image?: string | null;
   genres?: string[];
   followers?: number | null;
+  spotifyId?: string | null;
   rank?: number | null;
   totalRanked?: number;
   distinctTracks?: number;
@@ -215,6 +217,16 @@ export default function ArtistDetailClient({ name }: { name: string }) {
                 )}
               </div>
             </div>
+
+            {(state.data.spotifyId || state.data.topTracks?.[0]?.trackUri) && (
+              <div className="glass-card overflow-hidden p-2">
+                {state.data.spotifyId ? (
+                  <MiniPlayer artistId={state.data.spotifyId} />
+                ) : (
+                  <MiniPlayer trackId={state.data.topTracks![0].trackUri!.split(":").pop()} />
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <StatCard label="Total Plays" value={(state.data.totalPlays ?? 0).toLocaleString()} />

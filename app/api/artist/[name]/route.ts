@@ -102,6 +102,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     image: withImage.image,
     genres: withImage.genres,
     followers: withImage.followers,
+    spotifyId: withImage.spotifyId,
     rank,
     totalRanked,
     distinctTracks,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import HistogramChart from "./HistogramChart";
 import StatCard from "./StatCard";
+import MiniPlayer from "./MiniPlayer";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface TrendPoint {
@@ -180,39 +181,45 @@ export default function TrackDetailClient({ id }: { id: string }) {
 
         {state.status === "ready" && !state.data.empty && !state.data.emptyRange && !state.data.notFound && (
           <div className="space-y-6">
-            <div className="glass-card flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:text-left">
-              <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-[var(--hover)]">
-                {state.data.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={state.data.image} alt="" className="h-full w-full object-cover" />
-                )}
+            <div className="glass-card flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
+              <div className="flex flex-1 flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
+                <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-[var(--hover)]">
+                  {state.data.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={state.data.image} alt="" className="h-full w-full object-cover" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
+                  {state.data.artistName && (
+                    <a
+                      href={`/artist/${encodeURIComponent(state.data.artistName)}`}
+                      className="mt-1 inline-block text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                    >
+                      {state.data.artistName}
+                    </a>
+                  )}
+                  {(state.data.albumName || state.data.durationMs != null || state.data.popularity != null) && (
+                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                      {[
+                        state.data.albumName,
+                        state.data.durationMs != null ? formatDuration(state.data.durationMs) : null,
+                        state.data.popularity != null ? `Popularity ${state.data.popularity}/100` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
+                  {state.data.rank != null && (
+                    <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+                      #{state.data.rank} of {state.data.totalRanked} tracks
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
-                {state.data.artistName && (
-                  <a
-                    href={`/artist/${encodeURIComponent(state.data.artistName)}`}
-                    className="mt-1 inline-block text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-                  >
-                    {state.data.artistName}
-                  </a>
-                )}
-                {(state.data.albumName || state.data.durationMs != null || state.data.popularity != null) && (
-                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-                    {[
-                      state.data.albumName,
-                      state.data.durationMs != null ? formatDuration(state.data.durationMs) : null,
-                      state.data.popularity != null ? `Popularity ${state.data.popularity}/100` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                )}
-                {state.data.rank != null && (
-                  <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-                    #{state.data.rank} of {state.data.totalRanked} tracks
-                  </p>
-                )}
+
+              <div className="w-full sm:w-1/2">
+                <MiniPlayer trackId={id} height={80} />
               </div>
             </div>
 
