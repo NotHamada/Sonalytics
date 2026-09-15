@@ -16,6 +16,6 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const data = await getPeriodReport(accessToken, "month", searchParams.get("month"));
+  const data = await getPeriodReport(accessToken, "year", searchParams.get("year"));
   return NextResponse.json(data);
 }

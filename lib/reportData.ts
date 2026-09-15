@@ -2,20 +2,28 @@ import { prisma } from "./db";
 import { computeSummary, computeTopArtists, computeTopTracks } from "./historyAnalytics";
 import { attachArtistImages, attachTrackImages, buildRepresentativeTrackUriByArtist } from "./spotifyImages";
 import type { RankedItemWithImage } from "./spotifyImages";
-import { computeTopGenres, formatMonthLabel, monthBounds, parseMonthKey, toMonthKey } from "./monthlyReport";
+import {
+  computeTopGenres,
+  formatPeriodLabel,
+  isValidPeriodKey,
+  periodBounds,
+  toPeriodKey,
+  type ReportGranularity,
+} from "./reportPeriods";
 import type { GenreCount } from "./types";
 
 const TOP_N = 20;
 
-export type MonthlyReport =
+export type PeriodReport =
   | { empty: true }
   | {
       empty: false;
-      emptyMonth: boolean;
-      month: string;
-      monthLabel: string;
-      hasPrevMonth: boolean;
-      hasNextMonth: boolean;
+      emptyPeriod: boolean;
+      granularity: ReportGranularity;
+      key: string;
+      label: string;
+      hasPrev: boolean;
+      hasNext: boolean;
       totalPlays: number;
       totalMinutes: number;
       topArtists: RankedItemWithImage[];
@@ -23,26 +31,31 @@ export type MonthlyReport =
       topGenres: GenreCount[];
     };
 
-/** Shared by the JSON report route and the shareable card image route, so both resolve the
- *  same month the same way instead of drifting. */
-export async function getMonthlyReport(accessToken: string, requestedMonth: string | null): Promise<MonthlyReport> {
+/** Shared by the JSON report routes and the shareable card image route, so month and year
+ *  reports (and the card, which renders either) all resolve a period the same way instead of
+ *  drifting into separate implementations. */
+export async function getPeriodReport(
+  accessToken: string,
+  granularity: ReportGranularity,
+  requestedKey: string | null
+): Promise<PeriodReport> {
   const totalCount = await prisma.playEvent.count();
   if (totalCount === 0) return { empty: true };
 
   const bounds = await prisma.playEvent.aggregate({ _min: { playedAt: true }, _max: { playedAt: true } });
-  const earliestMonth = toMonthKey(bounds._min.playedAt!);
-  const latestMonth = toMonthKey(bounds._max.playedAt!);
+  const earliestKey = toPeriodKey(granularity, bounds._min.playedAt!);
+  const latestKey = toPeriodKey(granularity, bounds._max.playedAt!);
 
-  let month = latestMonth;
-  if (requestedMonth && parseMonthKey(requestedMonth)) {
-    // Clamp to the actual data range — a month outside it can't have anything to show anyway.
-    month = requestedMonth < earliestMonth ? earliestMonth : requestedMonth > latestMonth ? latestMonth : requestedMonth;
+  let key = latestKey;
+  if (requestedKey && isValidPeriodKey(granularity, requestedKey)) {
+    // Clamp to the actual data range — a period outside it can't have anything to show anyway.
+    key = requestedKey < earliestKey ? earliestKey : requestedKey > latestKey ? latestKey : requestedKey;
   }
 
-  const hasPrevMonth = month > earliestMonth;
-  const hasNextMonth = month < latestMonth;
+  const hasPrev = key > earliestKey;
+  const hasNext = key < latestKey;
 
-  const { start, end } = monthBounds(month);
+  const { start, end } = periodBounds(granularity, key);
   const rows = await prisma.playEvent.findMany({
     where: { playedAt: { gte: start, lt: end } },
     select: {
@@ -60,11 +73,12 @@ export async function getMonthlyReport(accessToken: string, requestedMonth: stri
   if (rows.length === 0) {
     return {
       empty: false,
-      emptyMonth: true,
-      month,
-      monthLabel: formatMonthLabel(month),
-      hasPrevMonth,
-      hasNextMonth,
+      emptyPeriod: true,
+      granularity,
+      key,
+      label: formatPeriodLabel(granularity, key),
+      hasPrev,
+      hasNext,
       totalPlays: 0,
       totalMinutes: 0,
       topArtists: [],
@@ -85,11 +99,12 @@ export async function getMonthlyReport(accessToken: string, requestedMonth: stri
 
   return {
     empty: false,
-    emptyMonth: false,
-    month,
-    monthLabel: formatMonthLabel(month),
-    hasPrevMonth,
-    hasNextMonth,
+    emptyPeriod: false,
+    granularity,
+    key,
+    label: formatPeriodLabel(granularity, key),
+    hasPrev,
+    hasNext,
     totalPlays: summary.totalPlays,
     totalMinutes: summary.totalMinutes,
     topArtists,

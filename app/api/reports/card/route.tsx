@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { getValidAccessToken } from "@/lib/spotify-auth";
-import { getMonthlyReport } from "@/lib/reportData";
+import { getPeriodReport } from "@/lib/reportData";
+import type { ReportGranularity } from "@/lib/reportPeriods";
 import { resolveCardTheme, type CardTheme } from "@/lib/cardThemes";
 
 // Instagram Story dimensions (9:16) — the card is sized to drop straight into a story with no
@@ -89,10 +90,11 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const theme = resolveCardTheme(searchParams.get("style"));
-  const data = await getMonthlyReport(accessToken, searchParams.get("month"));
+  const granularity: ReportGranularity = searchParams.get("granularity") === "year" ? "year" : "month";
+  const data = await getPeriodReport(accessToken, granularity, searchParams.get("period"));
 
   if (data.empty) return EmptyCard("Import your Spotify history first", theme);
-  if (data.emptyMonth) return EmptyCard(`No plays in ${data.monthLabel}`, theme);
+  if (data.emptyPeriod) return EmptyCard(`No plays in ${data.label}`, theme);
 
   const topArtists = data.topArtists.slice(0, 5);
   const topTracks = data.topTracks.slice(0, 5);
@@ -119,7 +121,7 @@ export async function GET(request: NextRequest) {
                 Sonalytics
               </div>
             </div>
-            <div style={{ display: "flex", fontSize: 28, color: theme.textSecondary }}>{data.monthLabel}</div>
+            <div style={{ display: "flex", fontSize: 28, color: theme.textSecondary }}>{data.label}</div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", marginTop: 36 }}>
@@ -127,7 +129,7 @@ export async function GET(request: NextRequest) {
               Your Wrapped
             </div>
             <div style={{ display: "flex", fontSize: 38, fontWeight: 600, color: theme.textSecondary }}>
-              for {data.monthLabel}
+              for {data.label}
             </div>
           </div>
 
