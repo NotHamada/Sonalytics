@@ -126,7 +126,7 @@ export default async function ImportPage() {
                 <span className="text-xs font-medium text-[var(--text-tertiary)]">Step {i + 1}</span>
               </div>
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">{step.title}</h3>
-              <p className="mt-1 text-xs text-[var(--text-secondary)]">{step.description}</p>
+              <p className="mt-1 break-words text-xs text-[var(--text-secondary)]">{step.description}</p>
             </div>
           ))}
         </div>
