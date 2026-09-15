@@ -5,6 +5,9 @@ export interface RankedItemWithImage extends RankedItem {
   image: string | null;
   genres?: string[];
   followers?: number | null;
+  /** The artist's real Spotify id, resolved via cross-referencing (see attachArtistImages).
+   *  Only ever set for artists — tracks already carry their own id in `trackUri`. */
+  spotifyId?: string | null;
 }
 
 /** The extended-history export has no image URLs, so tracks need a live lookup — batched
@@ -89,6 +92,7 @@ export async function attachArtistImages(
       image: details?.image ?? null,
       genres: details?.genres ?? [],
       followers: details?.followers ?? null,
+      spotifyId: artistId ?? null,
     };
   });
 }
