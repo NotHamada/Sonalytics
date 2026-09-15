@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { RankedItem } from "@/lib/historyAnalytics";
 import type { GenreCount } from "@/lib/types";
 import { shiftMonthKey } from "@/lib/monthlyReport";
+import { CARD_THEMES, DEFAULT_CARD_THEME } from "@/lib/cardThemes";
 import StatCard from "./StatCard";
 import TopGrid from "./TopGrid";
 import GenreChart from "./GenreChart";
@@ -72,6 +73,7 @@ function FeaturedCard({ label, item, href }: { label: string; item?: RankedItemW
 export default function ReportsClient() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [requestedMonth, setRequestedMonth] = useState<string | null>(null);
+  const [cardStyle, setCardStyle] = useState(DEFAULT_CARD_THEME);
 
   useEffect(() => {
     let cancelled = false;
@@ -239,8 +241,26 @@ export default function ReportsClient() {
               <p className="text-sm text-[var(--text-secondary)]">
                 A shareable card for {state.data.monthLabel} — your top artists, tracks, and minutes listened.
               </p>
+              <div className="flex items-center gap-3">
+                {CARD_THEMES.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => setCardStyle(theme.id)}
+                    aria-label={theme.label}
+                    aria-pressed={cardStyle === theme.id}
+                    title={theme.label}
+                    className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
+                      cardStyle === theme.id
+                        ? "border-[var(--accent)] scale-110"
+                        : "border-transparent opacity-70 hover:opacity-100"
+                    }`}
+                    style={{ background: theme.swatch }}
+                  />
+                ))}
+              </div>
               <a
-                href={`/api/reports/card?month=${state.data.month}`}
+                href={`/api/reports/card?month=${state.data.month}&style=${cardStyle}`}
                 download={`sonalytics-wrapped-${state.data.month}.png`}
                 className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
               >
