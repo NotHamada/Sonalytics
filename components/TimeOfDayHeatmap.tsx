@@ -48,7 +48,7 @@ export default function TimeOfDayHeatmap({ data }: { data: HeatmapCell[] }) {
     <div className="glass-card p-5">
       <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Listening by Hour &amp; Day</h2>
       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
-        When during the week you listen most — darker means more minutes.
+        When during the week you listen most — lighter means more minutes.
       </p>
 
       {data.length === 0 ? (

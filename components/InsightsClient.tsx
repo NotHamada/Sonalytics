@@ -5,6 +5,7 @@ import type { HeatmapCell, HourPoint, WeekdayPoint } from "@/lib/historyAnalytic
 import StatCard from "./StatCard";
 import HistogramChart from "./HistogramChart";
 import TimeOfDayHeatmap from "./TimeOfDayHeatmap";
+import DayPartBreakdown from "./DayPartBreakdown";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface InsightsData {
@@ -194,7 +195,10 @@ export default function InsightsClient() {
               emptyMessage="Not enough data yet."
             />
 
-            <TimeOfDayHeatmap data={state.data.heatmap ?? []} />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <TimeOfDayHeatmap data={state.data.heatmap ?? []} />
+              <DayPartBreakdown data={state.data.byHour ?? []} />
+            </div>
           </div>
         )}
       </main>
