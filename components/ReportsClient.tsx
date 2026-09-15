@@ -234,6 +234,20 @@ export default function ReportsClient() {
               />
             </div>
 
+            <div className="glass-card flex flex-col items-center gap-3 p-6 text-center">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Share your wrapped</h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                A shareable card for {state.data.monthLabel} — your top artists, tracks, and minutes listened.
+              </p>
+              <a
+                href={`/api/reports/card?month=${state.data.month}`}
+                download={`sonalytics-wrapped-${state.data.month}.png`}
+                className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+              >
+                Download Card
+              </a>
+            </div>
+
             <TopGrid title="Top Artists" items={state.data.topArtists ?? []} linkType="artist" />
             <TopGrid title="Top Tracks" items={state.data.topTracks ?? []} linkType="track" />
             <GenreChart data={state.data.topGenres ?? []} />
