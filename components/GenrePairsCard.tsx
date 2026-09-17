@@ -1,11 +1,15 @@
 import type { GenrePair } from "@/lib/types";
+import InfoTooltip from "./InfoTooltip";
 
 export default function GenrePairsCard({ pairs }: { pairs: GenrePair[] }) {
   const max = Math.max(1, ...pairs.map((p) => p.count));
 
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Genre Pairings</h2>
+      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+        Genre Pairings
+        <InfoTooltip text="Count of top artists tagged with both genres at once, across your deduplicated short/medium/long-term top-artist lists — a simple co-occurrence count, not a normalized association measure." />
+      </h2>
       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
         Genres that most often tag the same artist in your top artists.
       </p>

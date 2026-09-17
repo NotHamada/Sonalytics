@@ -191,22 +191,26 @@ export default function HistoryClient() {
               label="Avg. Track Popularity"
               value={`${dashboard.data.popularitySummary.average}/100`}
               hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
+              formula="Mean of Spotify's own 0-100 popularity score across your deduplicated top tracks (short/medium/long-term windows combined)."
             />
             <StatCard
               label="Deep Cuts"
               value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
               hint="Tracks under 40 popularity"
+              formula="percent = (top tracks with popularity < 40 ÷ total deduplicated top tracks) × 100."
             />
             <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
             <StatCard
               label="Taste Diversity"
               value={dashboard.data.diversityIndex.label}
               hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
+              formula="Shannon entropy of your genre distribution, normalized 0-1 by the max possible entropy for that many distinct genres: score = −Σ p·log₂(p) ÷ log₂(N), where p is each genre's share of tagged artists and N is the number of distinct genres."
             />
             <StatCard
               label="Era vs. Popularity"
               value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
               hint={dashboard.data.popularityEraCorrelation.interpretation}
+              formula="Pearson correlation (r) between each top track's release year and its popularity score: r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), where dx/dy are each point's distance from the mean year/popularity."
             />
           </div>
         )}
@@ -313,6 +317,7 @@ export default function HistoryClient() {
               <GenreChart data={dashboard.data.genreDistribution} />
               <HistogramChart
                 title="Popularity Distribution"
+                formula="Track count per 10-point bucket of Spotify's 0-100 popularity score, across your deduplicated top tracks."
                 data={dashboard.data.popularityHistogram}
                 barName="Tracks"
                 emptyMessage="Not enough top tracks to build a distribution yet."
@@ -321,6 +326,7 @@ export default function HistoryClient() {
 
             <HistogramChart
               title="Taste by Decade"
+              formula="Track count grouped by the release decade of each top track's album (release year, rounded down to the nearest 10)."
               data={dashboard.data.releaseEraHistogram}
               barName="Tracks"
               emptyMessage="Not enough release-date data yet."

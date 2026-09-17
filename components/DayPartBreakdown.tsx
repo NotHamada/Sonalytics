@@ -1,6 +1,7 @@
 "use client";
 
 import type { HourPoint } from "@/lib/historyAnalytics";
+import InfoTooltip from "./InfoTooltip";
 
 const PARTS = [
   { label: "Night", range: "12a–6a", start: 0, end: 6 },
@@ -22,7 +23,10 @@ export default function DayPartBreakdown({ data }: { data: HourPoint[] }) {
 
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Day Part Breakdown</h2>
+      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+        Day Part Breakdown
+        <InfoTooltip text="percent = (minutes played in that part of day ÷ total minutes) × 100, where each hour-of-day bucket is assigned to Night (12a–6a), Morning (6a–12p), Afternoon (12p–6p), or Evening (6p–12a)." />
+      </h2>
       <p className="mb-4 text-xs text-[var(--text-tertiary)]">Share of listening time across the day.</p>
 
       {totalMinutes === 0 ? (

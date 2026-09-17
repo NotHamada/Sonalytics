@@ -175,6 +175,7 @@ export default function InsightsClient() {
                 hint={
                   state.data.peakHour ? `${state.data.peakHour.minutes.toLocaleString()} min total` : undefined
                 }
+                formula="The hour-of-day (0-23, your local time) with the highest total minutes summed across your selected range."
               />
               <StatCard
                 label="Peak Day"
@@ -184,11 +185,13 @@ export default function InsightsClient() {
                     ? `${state.data.peakWeekday.minutes.toLocaleString()} min total`
                     : undefined
                 }
+                formula="The day-of-week (your local time) with the highest total minutes summed across your selected range."
               />
             </div>
 
             <HistogramChart
               title="Listening by Hour of Day"
+              formula="Total minutes played, summed by hour-of-day (your local time) across your selected range — a play at 9:15pm on any date adds to the 9pm bucket."
               data={(state.data.byHour ?? []).map((h) => ({ label: h.label, count: h.minutes }))}
               barName="Minutes"
               emptyMessage="Not enough data yet."
@@ -196,6 +199,7 @@ export default function InsightsClient() {
 
             <HistogramChart
               title="Listening by Day of Week"
+              formula="Total minutes played, summed by day-of-week (your local time) across your selected range."
               data={(state.data.byWeekday ?? []).map((d) => ({ label: d.label, count: d.minutes }))}
               barName="Minutes"
               emptyMessage="Not enough data yet."

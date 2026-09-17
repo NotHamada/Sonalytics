@@ -1,6 +1,7 @@
 "use client";
 
 import type { HeatmapCell } from "@/lib/historyAnalytics";
+import InfoTooltip from "./InfoTooltip";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
@@ -46,7 +47,10 @@ export default function TimeOfDayHeatmap({ data }: { data: HeatmapCell[] }) {
 
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Listening by Hour &amp; Day</h2>
+      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+        Listening by Hour &amp; Day
+        <InfoTooltip text="Each cell sums total minutes played in that hour/weekday slot. Opacity = 0.2 + 0.8 × (cell minutes ÷ busiest cell's minutes), so the busiest slot is fully opaque and empty slots fall back to the divider color." />
+      </h2>
       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
         When during the week you listen most — lighter means more minutes.
       </p>

@@ -3,16 +3,19 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { HistogramBucket } from "@/lib/types";
 import { useChartPalette } from "@/lib/useChartPalette";
+import InfoTooltip from "./InfoTooltip";
 
 export default function HistogramChart({
   title,
   subtitle,
+  formula,
   data,
   barName,
   emptyMessage,
 }: {
   title: string;
   subtitle?: string;
+  formula?: string;
   data: HistogramBucket[];
   barName: string;
   emptyMessage: string;
@@ -21,8 +24,11 @@ export default function HistogramChart({
 
   return (
     <div className="glass-card p-5">
-      <h2 className={`text-lg font-semibold text-[var(--text-primary)] ${subtitle ? "mb-1" : "mb-4"}`}>
+      <h2
+        className={`flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)] ${subtitle ? "mb-1" : "mb-4"}`}
+      >
         {title}
+        {formula && <InfoTooltip text={formula} />}
       </h2>
       {subtitle && <p className="mb-4 text-xs text-[var(--text-tertiary)]">{subtitle}</p>}
       {data.length === 0 ? (

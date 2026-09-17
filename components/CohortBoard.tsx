@@ -1,4 +1,5 @@
 import type { CohortBreakdown } from "@/lib/types";
+import InfoTooltip from "./InfoTooltip";
 
 function Column({ title, hint, entries }: { title: string; hint: string; entries: CohortBreakdown["core"] }) {
   return (
@@ -37,7 +38,10 @@ function Column({ title, hint, entries }: { title: string; hint: string; entries
 export default function CohortBoard({ title, cohorts }: { title: string; cohorts: CohortBreakdown }) {
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
+      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+        {title}
+        <InfoTooltip text="Classified by presence across Spotify's short-term (~4 weeks), medium-term (~6 months), and long-term (years) top-item windows: Core = in all three, New Discoveries = only in the short-term window, Fading Out = in medium/long-term but has dropped out of short-term." />
+      </h2>
       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
         Comparing your last-4-weeks, 6-month, and all-time top lists.
       </p>

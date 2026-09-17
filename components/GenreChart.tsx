@@ -3,13 +3,17 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { GenreCount } from "@/lib/types";
 import { useChartPalette } from "@/lib/useChartPalette";
+import InfoTooltip from "./InfoTooltip";
 
 export default function GenreChart({ data }: { data: GenreCount[] }) {
   const palette = useChartPalette();
 
   return (
     <div className="glass-card p-5">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">Genre Breakdown</h2>
+      <h2 className="mb-4 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+        Genre Breakdown
+        <InfoTooltip text="Count of distinct artists (deduplicated by Spotify id) tagged with each genre, across your top-artist lists — one count per artist per genre, not weighted by plays." />
+      </h2>
       {data.length === 0 ? (
         <p className="text-sm text-[var(--text-tertiary)]">Not enough data to determine genres yet.</p>
       ) : (

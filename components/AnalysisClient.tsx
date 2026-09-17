@@ -5,6 +5,7 @@ import type { Granularity, SessionSummary, StreakSummary, TrendBucket } from "@/
 import type { AnomalyDay, ComparisonResult, CorrelationPair, RegressionResult } from "@/lib/statisticalAnalysis";
 import StatCard from "./StatCard";
 import HistogramChart from "./HistogramChart";
+import InfoTooltip from "./InfoTooltip";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface AnalysisData {
@@ -209,25 +210,41 @@ export default function AnalysisClient() {
                         ? `${formatDate(streaks.longestStart)} – ${formatDate(streaks.longestEnd)}`
                         : undefined
                     }
+                    formula="Longest run of consecutive calendar days (your local time) with at least one play, across your full history."
                   />
-                  <StatCard label="Current Streak" value={plural(streaks.current, "day")} />
-                  <StatCard label="Total Sessions" value={sessions.totalSessions.toLocaleString()} />
+                  <StatCard
+                    label="Current Streak"
+                    value={plural(streaks.current, "day")}
+                    formula="Run of consecutive calendar days with a play, ending on the most recent day present in your data (not necessarily today)."
+                  />
+                  <StatCard
+                    label="Total Sessions"
+                    value={sessions.totalSessions.toLocaleString()}
+                    formula="A new session starts whenever the gap since the previous play ended exceeds 30 minutes; consecutive plays within that gap merge into one session."
+                  />
                   <StatCard
                     label="Avg. Session"
                     value={`${sessions.avgMinutes} min`}
                     hint={`${sessions.avgTracks} tracks avg`}
+                    formula="Mean session duration and track count across every session in the selected range (session = a run of plays with no gap over 30 minutes)."
                   />
                   <StatCard
                     label="Skip Rate"
                     value={`${skipRateOverall}%`}
                     hint="Share of plays skipped early"
+                    formula="percent = (plays where Spotify's own export marks skipped: true ÷ total plays) × 100."
                   />
-                  <StatCard label="Distinct Artists" value={distinctArtists.toLocaleString()} />
+                  <StatCard
+                    label="Distinct Artists"
+                    value={distinctArtists.toLocaleString()}
+                    formula="Count of distinct artist names across all plays in the selected range."
+                  />
                 </div>
 
                 <HistogramChart
                   title={`Sessions per ${periodLabel}`}
                   subtitle="A session is a run of plays with no gap over 30 minutes."
+                  formula="Sessions are built by sorting all plays chronologically and starting a new one whenever the gap since the previous play ended exceeds 30 minutes; each bar counts sessions whose start falls in that period."
                   data={sessions.trend.map((b) => ({ label: b.label, count: b.value }))}
                   barName="Sessions"
                   emptyMessage="Not enough data yet."
@@ -236,6 +253,7 @@ export default function AnalysisClient() {
                 <HistogramChart
                   title="Skip Rate Over Time"
                   subtitle={`Share of plays skipped early, by ${granularity}.`}
+                  formula="percent = (plays marked skipped ÷ total plays) × 100, computed separately within each period."
                   data={(state.data.skipRateTrend ?? []).map((b) => ({ label: b.label, count: b.value }))}
                   barName="Skip %"
                   emptyMessage="Not enough data yet."
@@ -244,6 +262,7 @@ export default function AnalysisClient() {
                 <HistogramChart
                   title="Taste Diversity Over Time"
                   subtitle={`0-100 score from your ${periodAdj} artist mix — low means a few artists dominated, high means it was spread evenly.`}
+                  formula="Normalized Shannon entropy of each period's artist play-share, scaled 0-100: score = 100 × (−Σ p·log₂(p) ÷ log₂(N)), where p is an artist's share of that period's plays and N is the number of distinct artists played that period."
                   data={(state.data.diversityTrend ?? []).map((b) => ({ label: b.label, count: b.value }))}
                   barName="Diversity"
                   emptyMessage="Not enough data yet."
@@ -252,6 +271,7 @@ export default function AnalysisClient() {
                 <HistogramChart
                   title={`New Artists Discovered per ${periodLabel}`}
                   subtitle="Counted against the day each artist first appears anywhere in your history."
+                  formula="Each artist's first-ever play (found across your FULL history, not just the selected range) is bucketed by period; a period's bar is the count of artists whose first play falls there."
                   data={(state.data.discoveryVelocity ?? []).map((b) => ({ label: b.label, count: b.value }))}
                   barName="New Artists"
                   emptyMessage="Not enough data yet."
@@ -267,8 +287,9 @@ export default function AnalysisClient() {
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {trend && (
                       <div className="glass-card p-5">
-                        <h3 className="mb-2 text-lg font-semibold text-[var(--text-primary)]">
+                        <h3 className="mb-2 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
                           Listening Trend
+                          <InfoTooltip text="Least-squares linear regression of total minutes per period against the period index: slope = Σ(dx·dy) ÷ Σ(dx²). R² (= Pearson r²) measures fit quality, 0-1. Direction is 'flat' when |slope| is under 2% of the average minutes per period — otherwise up/down." />
                         </h3>
                         <p className="text-2xl font-bold text-[var(--text-primary)]">
                           {trend.direction === "up" ? "↑ Trending Up" : trend.direction === "down" ? "↓ Trending Down" : "→ Flat"}
@@ -279,8 +300,9 @@ export default function AnalysisClient() {
 
                     {weekdayVsWeekend && (
                       <div className="glass-card p-5">
-                        <h3 className="mb-2 text-lg font-semibold text-[var(--text-primary)]">
+                        <h3 className="mb-2 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
                           Weekday vs. Weekend
+                          <InfoTooltip text="Welch's t-test on daily total minutes, weekday vs weekend: t = (mean₁ − mean₂) ÷ √(var₁/n₁ + var₂/n₂). The two-tailed p-value comes from the normal approximation to the t-distribution (accurate here since there are usually dozens to hundreds of days per group); significant if p < 0.05." />
                         </h3>
                         <p className="text-2xl font-bold text-[var(--text-primary)]">
                           {weekdayVsWeekend.meanWeekday} vs {weekdayVsWeekend.meanWeekend} min/day
@@ -293,7 +315,10 @@ export default function AnalysisClient() {
 
                 {correlations.length > 0 && (
                   <div className="glass-card p-5">
-                    <h3 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Correlation Highlights</h3>
+                    <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+                      Correlation Highlights
+                      <InfoTooltip text="Pearson correlation r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), computed pairwise across four per-period series (Minutes, Skip Rate, Diversity, New Artists), each built from the same aligned, equal-length list of periods." />
+                    </h3>
                     <p className="mb-4 text-xs text-[var(--text-tertiary)]">
                       Pearson correlation (r) across your {periodAdj} metrics — closer to ±1 means a stronger
                       relationship.
@@ -322,7 +347,10 @@ export default function AnalysisClient() {
                 {(spikeDays.length > 0 || quietDays.length > 0) && (
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div className="glass-card p-5">
-                      <h3 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Spike Days</h3>
+                      <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+                        Spike Days
+                        <InfoTooltip text="z-score = (day's total minutes − mean daily minutes) ÷ standard deviation, across every active day in your history. The top 3 days with z > 1 are shown." />
+                      </h3>
                       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
                         Days well above your typical active day.
                       </p>
@@ -343,7 +371,10 @@ export default function AnalysisClient() {
                     </div>
 
                     <div className="glass-card p-5">
-                      <h3 className="mb-1 text-lg font-semibold text-[var(--text-primary)]">Quiet Days</h3>
+                      <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
+                        Quiet Days
+                        <InfoTooltip text="Same z-score as Spike Days (day's minutes − mean ÷ standard deviation), showing the 3 lowest days with z < −1." />
+                      </h3>
                       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
                         Active days well below your typical listening.
                       </p>
