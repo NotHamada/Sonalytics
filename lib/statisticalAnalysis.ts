@@ -327,8 +327,8 @@ export function computeAnomalyDays(rows: AnalysisRow[], tzOffsetMinutes: number)
     zScore: stdDev === 0 ? 0 : Math.round(((e.minutes - m) / stdDev) * 100) / 100,
   }));
 
-  const spikes = [...withZ].sort((a, b) => b.zScore - a.zScore).slice(0, 3).filter((d) => d.zScore > 1);
-  const quiet = [...withZ].sort((a, b) => a.zScore - b.zScore).slice(0, 3).filter((d) => d.zScore < -1);
+  const spikes = [...withZ].sort((a, b) => b.zScore - a.zScore).slice(0, 3).filter((d) => d.zScore > 2);
+  const quiet = [...withZ].sort((a, b) => a.zScore - b.zScore).slice(0, 3).filter((d) => d.zScore < -2);
 
   return { spikes, quiet };
 }

@@ -349,7 +349,7 @@ export default function AnalysisClient() {
                     <div className="glass-card p-5">
                       <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
                         Spike Days
-                        <InfoTooltip text="z-score = (day's total minutes − mean daily minutes) ÷ standard deviation, across every active day in your history. The top 3 days with z > 1 are shown." />
+                        <InfoTooltip text="z-score = (day's total minutes − mean daily minutes) ÷ standard deviation, across every active day in your history. The top 3 days with z > 2 are shown." />
                       </h3>
                       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
                         Days well above your typical active day.
@@ -373,7 +373,7 @@ export default function AnalysisClient() {
                     <div className="glass-card p-5">
                       <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
                         Quiet Days
-                        <InfoTooltip text="Same z-score as Spike Days (day's minutes − mean ÷ standard deviation), showing the 3 lowest days with z < −1." />
+                        <InfoTooltip text="Same z-score as Spike Days (day's minutes − mean ÷ standard deviation), showing the 3 lowest days with z < −2." />
                       </h3>
                       <p className="mb-4 text-xs text-[var(--text-tertiary)]">
                         Active days well below your typical listening.
