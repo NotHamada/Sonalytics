@@ -1,21 +1,24 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { GenreCount } from "@/lib/types";
 import { useChartPalette } from "@/lib/useChartPalette";
 import InfoTooltip from "./InfoTooltip";
 
 export default function GenreChart({ data }: { data: GenreCount[] }) {
+  const t = useTranslations("history");
+  const tFormulas = useTranslations("formulas.history");
   const palette = useChartPalette();
 
   return (
     <div className="glass-card p-5">
       <h2 className="mb-4 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-        Genre Breakdown
-        <InfoTooltip text="Count of distinct artists (deduplicated by Spotify id) tagged with each genre, across your top-artist lists — one count per artist per genre, not weighted by plays." />
+        {t("genreBreakdown")}
+        <InfoTooltip text={tFormulas("genreBreakdown")} />
       </h2>
       {data.length === 0 ? (
-        <p className="text-sm text-[var(--text-tertiary)]">Not enough data to determine genres yet.</p>
+        <p className="text-sm text-[var(--text-tertiary)]">{t("notEnoughGenreData")}</p>
       ) : (
         <ResponsiveContainer width="100%" height={Math.max(220, data.length * 32)}>
           <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16 }}>
@@ -40,7 +43,7 @@ export default function GenreChart({ data }: { data: GenreCount[] }) {
               itemStyle={{ color: palette.accent }}
               cursor={{ fill: palette.cursor }}
             />
-            <Bar dataKey="count" fill={palette.accent} radius={[0, 4, 4, 0]} name="Artists" />
+            <Bar dataKey="count" fill={palette.accent} radius={[0, 4, 4, 0]} name={t("artistsBarName")} />
           </BarChart>
         </ResponsiveContainer>
       )}

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasLocale } from "next-intl";
 import { getValidAccessToken } from "@/lib/spotify-auth";
 import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
 import { computeTimeOfDay } from "@/lib/historyAnalytics";
+import { routing } from "@/i18n/routing";
 
 export async function GET(request: NextRequest) {
   const accessToken = await getValidAccessToken();
@@ -35,6 +37,9 @@ export async function GET(request: NextRequest) {
   const tzOffsetParam = searchParams.get("tzOffset");
   const tzOffsetMinutes = tzOffsetParam ? Number(tzOffsetParam) : 0;
 
+  const localeParam = searchParams.get("locale");
+  const locale = hasLocale(routing.locales, localeParam) ? localeParam : routing.defaultLocale;
+
   const rows = await prisma.playEvent.findMany({
     where: {
       playedAt: {
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ empty: false, emptyRange: true });
   }
 
-  const timeOfDay = computeTimeOfDay(rows, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes);
+  const timeOfDay = computeTimeOfDay(rows, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes, locale);
 
   return NextResponse.json({
     empty: false,

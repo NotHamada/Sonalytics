@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 interface FileResult {
   name: string;
@@ -15,6 +17,8 @@ type UploadState =
   | { status: "error"; message: string };
 
 export default function ImportClient() {
+  const t = useTranslations("import");
+  const tCommon = useTranslations("common");
   const [state, setState] = useState<UploadState>({ status: "idle" });
 
   async function handleFiles(fileList: FileList | null) {
@@ -43,15 +47,14 @@ export default function ImportClient() {
 
   return (
     <div className="glass-card p-6 text-center">
-      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Upload your files</h2>
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t("uploadTitle")}</h2>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-[var(--text-secondary)]">
-        Select every <code>Streaming_History_Audio_*.json</code> and{" "}
-        <code>Streaming_History_Video_*.json</code> file from the unzipped export — same
-        format, just audio vs. video plays.
+        {t("uploadDescriptionPrefix")} <code>Streaming_History_Audio_*.json</code> {t("uploadDescriptionMiddle")}{" "}
+        <code>Streaming_History_Video_*.json</code> {t("uploadDescriptionSuffix")}
       </p>
 
       <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
-        Choose files
+        {t("chooseFiles")}
         <input
           type="file"
           accept=".json"
@@ -62,7 +65,7 @@ export default function ImportClient() {
       </label>
 
       {state.status === "uploading" && (
-        <p className="mt-4 text-sm text-[var(--text-secondary)]">Importing…</p>
+        <p className="mt-4 text-sm text-[var(--text-secondary)]">{t("importing")}</p>
       )}
 
       {state.status === "error" && (
@@ -77,24 +80,30 @@ export default function ImportClient() {
             className="rounded-xl border border-[var(--divider)] px-4 py-3 text-sm text-[var(--text-primary)]"
             style={{ background: "var(--accent-soft)" }}
           >
-            Imported {state.totalInserted.toLocaleString()} new plays (
-            {state.totalParsed.toLocaleString()} parsed across {state.files.length} file
-            {state.files.length === 1 ? "" : "s"}).
+            {t("importedSummary", {
+              inserted: state.totalInserted.toLocaleString(),
+              parsed: state.totalParsed.toLocaleString(),
+              files: tCommon("units.files", { count: state.files.length }),
+            })}
           </div>
           <ul className="space-y-1 text-xs text-[var(--text-tertiary)]">
             {state.files.map((f) => (
               <li key={f.name}>
                 {f.name}:{" "}
-                {f.error ? <span className="text-red-500 dark:text-red-300">{f.error}</span> : `${f.parsed} entries`}
+                {f.error ? (
+                  <span className="text-red-500 dark:text-red-300">{f.error}</span>
+                ) : (
+                  t("entries", { count: f.parsed })
+                )}
               </li>
             ))}
           </ul>
-          <a
+          <Link
             href="/history"
             className="mt-3 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
           >
-            View your history →
-          </a>
+            {t("viewHistory")}
+          </Link>
         </div>
       )}
     </div>

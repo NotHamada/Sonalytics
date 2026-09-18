@@ -1,7 +1,11 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { CohortBreakdown } from "@/lib/types";
 import InfoTooltip from "./InfoTooltip";
 
 function Column({ title, hint, entries }: { title: string; hint: string; entries: CohortBreakdown["core"] }) {
+  const tCommon = useTranslations("common");
   return (
     <div>
       <div className="mb-2">
@@ -28,7 +32,7 @@ function Column({ title, hint, entries }: { title: string; hint: string; entries
           </li>
         ))}
         {entries.length === 0 && (
-          <li className="px-1.5 py-2 text-xs text-[var(--text-tertiary)]">None yet.</li>
+          <li className="px-1.5 py-2 text-xs text-[var(--text-tertiary)]">{tCommon("noneYet")}</li>
         )}
       </ul>
     </div>
@@ -36,19 +40,27 @@ function Column({ title, hint, entries }: { title: string; hint: string; entries
 }
 
 export default function CohortBoard({ title, cohorts }: { title: string; cohorts: CohortBreakdown }) {
+  const t = useTranslations("history");
+  const tFormulas = useTranslations("formulas.history");
   return (
     <div className="glass-card p-5">
       <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
         {title}
-        <InfoTooltip text="Classified by presence across Spotify's short-term (~4 weeks), medium-term (~6 months), and long-term (years) top-item windows: Core = in all three, New Discoveries = only in the short-term window, Fading Out = in medium/long-term but has dropped out of short-term." />
+        <InfoTooltip text={tFormulas("cohorts")} />
       </h2>
-      <p className="mb-4 text-xs text-[var(--text-tertiary)]">
-        Comparing your last-4-weeks, 6-month, and all-time top lists.
-      </p>
+      <p className="mb-4 text-xs text-[var(--text-tertiary)]">{t("cohortsSubtitle")}</p>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <Column title="Core" hint="In every window — your enduring taste" entries={cohorts.core} />
-        <Column title="New Discoveries" hint="Only in the last 4 weeks" entries={cohorts.discoveries} />
-        <Column title="Fading Out" hint="Was a favorite, less so lately" entries={cohorts.fading} />
+        <Column title={t("cohortColumns.core.title")} hint={t("cohortColumns.core.hint")} entries={cohorts.core} />
+        <Column
+          title={t("cohortColumns.discoveries.title")}
+          hint={t("cohortColumns.discoveries.hint")}
+          entries={cohorts.discoveries}
+        />
+        <Column
+          title={t("cohortColumns.fading.title")}
+          hint={t("cohortColumns.fading.hint")}
+          entries={cohorts.fading}
+        />
       </div>
     </div>
   );

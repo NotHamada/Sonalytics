@@ -53,7 +53,7 @@ export interface TopEntryDTO {
 
 export interface DiversityIndex {
   score: number;
-  label: string;
+  label: "unknown" | "focused" | "balanced" | "eclectic";
   distinctGenres: number;
 }
 
@@ -71,7 +71,7 @@ export interface GenrePair {
 
 export interface CorrelationResult {
   coefficient: number;
-  interpretation: string;
+  interpretation: "notEnoughData" | "newer" | "older" | "neutral";
   sampleSize: number;
 }
 

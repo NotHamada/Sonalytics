@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { DashboardData } from "@/lib/types";
 import type { HistorySummary, RankedItem, TrendPoint } from "@/lib/historyAnalytics";
 import StatCard from "./StatCard";
@@ -9,6 +10,8 @@ import GenreChart from "./GenreChart";
 import HistogramChart from "./HistogramChart";
 import CohortBoard from "./CohortBoard";
 import GenrePairsCard from "./GenrePairsCard";
+import Header from "./Header";
+import { Link } from "@/i18n/navigation";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface RankedItemWithImage extends RankedItem {
@@ -43,6 +46,11 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 export default function HistoryClient() {
+  const t = useTranslations("history");
+  const tCommon = useTranslations("common");
+  const tFormulas = useTranslations("formulas.history");
+  const locale = useLocale();
+
   const [dashboard, setDashboard] = useState<DashboardLoadState>({ status: "loading" });
   const [history, setHistory] = useState<HistoryLoadState>({ status: "loading" });
   const [preset, setPreset] = useState<RangePreset>("lifetime");
@@ -126,98 +134,62 @@ export default function HistoryClient() {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-          Sonalytics
-          {dashboard.status === "ready" && (
+      <Header
+        active="history"
+        titleExtra={
+          dashboard.status === "ready" && (
             <span className="ml-2 hidden font-normal text-[var(--text-tertiary)] sm:inline">
               — {dashboard.data.displayName}
             </span>
-          )}
-        </h1>
-        <div className="flex items-center gap-4">
-          <a
-            href="/insights"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Insights
-          </a>
-          <a
-            href="/analysis"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Analysis
-          </a>
-          <a
-            href="/reports"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Reports
-          </a>
-          <a
-            href="/import"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Import
-          </a>
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="submit"
-              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              Disconnect
-            </button>
-          </form>
-        </div>
-      </header>
+          )
+        }
+      />
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6 sm:px-6">
         {dashboard.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">
-            Loading your listening data…
-          </div>
+          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loadingDashboard")}</div>
         )}
 
         {dashboard.status === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            Couldn&apos;t load your data: {dashboard.message}
+            {t("loadErrorDashboard", { message: dashboard.message })}
           </div>
         )}
 
         {dashboard.status === "ready" && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            <StatCard label="Saved Tracks" value={dashboard.data.savedTracksTotal.toLocaleString()} />
+            <StatCard label={t("savedTracks")} value={dashboard.data.savedTracksTotal.toLocaleString()} />
             <StatCard
-              label="Avg. Track Popularity"
+              label={t("avgPopularity")}
               value={`${dashboard.data.popularitySummary.average}/100`}
-              hint={`${dashboard.data.popularitySummary.sampleSize} tracks sampled`}
-              formula="Mean of Spotify's own 0-100 popularity score across your deduplicated top tracks (short/medium/long-term windows combined)."
+              hint={t("avgPopularityHint", { count: dashboard.data.popularitySummary.sampleSize })}
+              formula={tFormulas("avgPopularity")}
             />
             <StatCard
-              label="Deep Cuts"
+              label={t("deepCuts")}
               value={`${dashboard.data.popularitySummary.deepCutsPercent}%`}
-              hint="Tracks under 40 popularity"
-              formula="percent = (top tracks with popularity < 40 ÷ total deduplicated top tracks) × 100."
+              hint={t("deepCutsHint")}
+              formula={tFormulas("deepCuts")}
             />
-            <StatCard label="Distinct Genres" value={String(dashboard.data.genreDistribution.length)} />
+            <StatCard label={t("distinctGenres")} value={String(dashboard.data.genreDistribution.length)} />
             <StatCard
-              label="Taste Diversity"
-              value={dashboard.data.diversityIndex.label}
-              hint={`Entropy score ${dashboard.data.diversityIndex.score.toFixed(2)}`}
-              formula="Shannon entropy of your genre distribution, normalized 0-1 by the max possible entropy for that many distinct genres: score = −Σ p·log₂(p) ÷ log₂(N), where p is each genre's share of tagged artists and N is the number of distinct genres."
+              label={t("tasteDiversity")}
+              value={t(`diversityLabel.${dashboard.data.diversityIndex.label}`)}
+              hint={t("tasteDiversityHint", { score: dashboard.data.diversityIndex.score.toFixed(2) })}
+              formula={tFormulas("tasteDiversity")}
             />
             <StatCard
-              label="Era vs. Popularity"
+              label={t("eraVsPopularity")}
               value={dashboard.data.popularityEraCorrelation.coefficient.toFixed(2)}
-              hint={dashboard.data.popularityEraCorrelation.interpretation}
-              formula="Pearson correlation (r) between each top track's release year and its popularity score: r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), where dx/dy are each point's distance from the mean year/popularity."
+              hint={t(`eraCorrelation.${dashboard.data.popularityEraCorrelation.interpretation}`)}
+              formula={tFormulas("eraVsPopularity")}
             />
           </div>
         )}
 
         <div className="space-y-6 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <SectionHeading>Full History</SectionHeading>
+            <SectionHeading>{t("sectionHeading")}</SectionHeading>
             {!(history.status === "ready" && history.data.empty) && (
               <RangeSelector
                 preset={preset}
@@ -233,32 +205,30 @@ export default function HistoryClient() {
           </div>
 
           {history.status === "loading" && (
-            <div className="py-12 text-center text-[var(--text-tertiary)]">
-              Loading your imported history…
-            </div>
+            <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loadingHistory")}</div>
           )}
 
           {history.status === "error" && (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-              Couldn&apos;t load your history: {history.message}
+              {t("loadErrorHistory", { message: history.message })}
             </div>
           )}
 
           {history.status === "ready" && history.data.empty && (
             <div className="glass-card p-8 text-center">
-              <p className="text-[var(--text-secondary)]">No imported history yet.</p>
-              <a
+              <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
+              <Link
                 href="/import"
                 className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
               >
-                Import your data
-              </a>
+                {tCommon("importCta")}
+              </Link>
             </div>
           )}
 
           {history.status === "ready" && !history.data.empty && history.data.emptyRange && (
             <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-              No plays in this time range.
+              {tCommon("noPlaysInRange")}
             </div>
           )}
 
@@ -268,40 +238,40 @@ export default function HistoryClient() {
             history.data.summary && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <StatCard label="Total Plays" value={history.data.summary.totalPlays.toLocaleString()} />
+                  <StatCard label={tCommon("stats.totalPlays")} value={history.data.summary.totalPlays.toLocaleString()} />
                   <StatCard
-                    label="Total Minutes"
+                    label={tCommon("stats.totalMinutes")}
                     value={history.data.summary.totalMinutes.toLocaleString()}
                   />
                   <StatCard
-                    label="Since"
+                    label={tCommon("stats.since")}
                     value={
                       history.data.summary.earliestPlay
-                        ? new Date(history.data.summary.earliestPlay).toLocaleDateString()
+                        ? new Date(history.data.summary.earliestPlay).toLocaleDateString(locale)
                         : "—"
                     }
                   />
                   <StatCard
-                    label="Through"
+                    label={tCommon("stats.through")}
                     value={
                       history.data.summary.latestPlay
-                        ? new Date(history.data.summary.latestPlay).toLocaleDateString()
+                        ? new Date(history.data.summary.latestPlay).toLocaleDateString(locale)
                         : "—"
                     }
                   />
                 </div>
 
                 <HistogramChart
-                  title="Minutes Over Time"
-                  data={(history.data.trend ?? []).map((t) => ({ label: t.label, count: t.minutes }))}
-                  barName="Minutes"
-                  emptyMessage="Not enough data yet."
+                  title={t("minutesOverTime")}
+                  data={(history.data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
+                  barName={tCommon("units.minutesLabel")}
+                  emptyMessage={tCommon("notEnoughData")}
                 />
 
                 <div className="space-y-6">
-                  <TopGrid title="Top Tracks" items={history.data.topTracks ?? []} linkType="track" />
+                  <TopGrid title={t("topTracks")} items={history.data.topTracks ?? []} linkType="track" />
                   <TopGrid
-                    title="Top Artists"
+                    title={t("topArtists")}
                     items={history.data.topArtists ?? []}
                     imageShape="circle"
                     linkType="artist"
@@ -316,35 +286,33 @@ export default function HistoryClient() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <GenreChart data={dashboard.data.genreDistribution} />
               <HistogramChart
-                title="Popularity Distribution"
-                formula="Track count per 10-point bucket of Spotify's 0-100 popularity score, across your deduplicated top tracks."
+                title={t("popularityDistribution")}
+                formula={tFormulas("popularityDistribution")}
                 data={dashboard.data.popularityHistogram}
-                barName="Tracks"
-                emptyMessage="Not enough top tracks to build a distribution yet."
+                barName={t("tracksBarName")}
+                emptyMessage={t("notEnoughTopTracks")}
               />
             </div>
 
             <HistogramChart
-              title="Taste by Decade"
-              formula="Track count grouped by the release decade of each top track's album (release year, rounded down to the nearest 10)."
+              title={t("tasteByDecade")}
+              formula={tFormulas("tasteByDecade")}
               data={dashboard.data.releaseEraHistogram}
-              barName="Tracks"
-              emptyMessage="Not enough release-date data yet."
+              barName={t("tracksBarName")}
+              emptyMessage={t("notEnoughReleaseData")}
             />
 
             <div className="space-y-6">
-              <SectionHeading>Discovery vs. Loyalty</SectionHeading>
-              <CohortBoard title="Artists" cohorts={dashboard.data.artistCohorts} />
-              <CohortBoard title="Tracks" cohorts={dashboard.data.trackCohorts} />
+              <SectionHeading>{t("discoveryVsLoyalty")}</SectionHeading>
+              <CohortBoard title={t("cohorts.artists")} cohorts={dashboard.data.artistCohorts} />
+              <CohortBoard title={t("cohorts.tracks")} cohorts={dashboard.data.trackCohorts} />
             </div>
 
             <GenrePairsCard pairs={dashboard.data.genrePairs} />
           </>
         )}
 
-        <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">
-          Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.
-        </footer>
+        <footer className="pt-4 text-center text-xs text-[var(--text-tertiary)]">{tCommon("footer")}</footer>
       </main>
     </div>
   );

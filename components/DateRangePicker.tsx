@@ -1,22 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_LABELS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+import { useLocale, useTranslations } from "next-intl";
+import { formatMonthName, formatShortDate, formatWeekdayLabel } from "@/lib/localeFormat";
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
@@ -37,8 +23,8 @@ function sameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-export function formatDisplay(d: Date): string {
-  return `${MONTH_LABELS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
+export function formatDisplay(d: Date, locale: string): string {
+  return formatShortDate(d, locale);
 }
 
 function buildMonthGrid(viewMonth: Date): (Date | null)[] {
@@ -68,6 +54,8 @@ export default function DateRangePicker({
   /** Called once a full start+end range has been picked, so the parent can close its panel. */
   onComplete?: () => void;
 }) {
+  const t = useTranslations("common.datePicker");
+  const locale = useLocale();
   const start = parseISODate(startDate);
   const end = parseISODate(endDate);
   const [viewMonth, setViewMonth] = useState(() => start ?? new Date());
@@ -76,6 +64,7 @@ export default function DateRangePicker({
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - EARLIEST_YEAR + 1 }, (_, i) => currentYear - i);
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) => formatWeekdayLabel(i, locale, "narrow"));
 
   function handleDayClick(day: Date) {
     // A click with no pending start, or right after a completed range, begins a new selection.
@@ -116,7 +105,7 @@ export default function DateRangePicker({
           type="button"
           onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))}
           className="shrink-0 rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
-          aria-label="Previous month"
+          aria-label={t("previousMonth")}
         >
           ‹
         </button>
@@ -125,19 +114,19 @@ export default function DateRangePicker({
           <select
             value={viewMonth.getMonth()}
             onChange={(e) => setViewMonth(new Date(viewMonth.getFullYear(), Number(e.target.value), 1))}
-            aria-label="Month"
+            aria-label={t("month")}
             className="min-w-0 rounded-md bg-transparent px-1 py-0.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--hover)] focus:outline-none"
           >
-            {MONTH_LABELS.map((m, i) => (
-              <option key={m} value={i} style={{ color: "#17172a", backgroundColor: "#ffffff" }}>
-                {m}
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i} value={i} style={{ color: "#17172a", backgroundColor: "#ffffff" }}>
+                {formatMonthName(i, locale)}
               </option>
             ))}
           </select>
           <select
             value={viewMonth.getFullYear()}
             onChange={(e) => setViewMonth(new Date(Number(e.target.value), viewMonth.getMonth(), 1))}
-            aria-label="Year"
+            aria-label={t("year")}
             className="min-w-0 rounded-md bg-transparent px-1 py-0.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--hover)] focus:outline-none"
           >
             {years.map((y) => (
@@ -152,14 +141,14 @@ export default function DateRangePicker({
           type="button"
           onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))}
           className="shrink-0 rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
-          aria-label="Next month"
+          aria-label={t("nextMonth")}
         >
           ›
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-y-1 text-center text-xs text-[var(--text-tertiary)]">
-        {WEEKDAY_LABELS.map((w, i) => (
+        {weekdayLabels.map((w, i) => (
           <div key={i} className="py-1">
             {w}
           </div>
@@ -174,7 +163,7 @@ export default function DateRangePicker({
               type="button"
               onClick={() => handleDayClick(day)}
               onMouseEnter={() => setHoverDate(day)}
-              aria-label={formatDisplay(day)}
+              aria-label={formatDisplay(day, locale)}
               className={`aspect-square rounded-full text-sm transition-colors ${
                 edge
                   ? "bg-[var(--accent)] font-semibold text-white"
@@ -190,7 +179,7 @@ export default function DateRangePicker({
       </div>
 
       <p className="mt-3 text-center text-xs text-[var(--text-tertiary)]">
-        {pendingStart && !end ? "Pick an end date" : "Pick a start date"}
+        {pendingStart && !end ? t("pickEndDate") : t("pickStartDate")}
       </p>
     </div>
   );

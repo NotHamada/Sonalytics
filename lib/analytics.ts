@@ -135,7 +135,7 @@ export function computeDiversityIndex(artistLists: SpotifyArtist[][]): Diversity
 
   const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
   if (total === 0 || counts.size === 0) {
-    return { score: 0, label: "Unknown", distinctGenres: 0 };
+    return { score: 0, label: "unknown", distinctGenres: 0 };
   }
 
   let entropy = 0;
@@ -146,7 +146,7 @@ export function computeDiversityIndex(artistLists: SpotifyArtist[][]): Diversity
   const maxEntropy = Math.log2(counts.size);
   const score = maxEntropy > 0 ? entropy / maxEntropy : 0;
 
-  const label = score < 0.4 ? "Focused" : score < 0.7 ? "Balanced" : "Eclectic";
+  const label = score < 0.4 ? "focused" : score < 0.7 ? "balanced" : "eclectic";
 
   return { score: Math.round(score * 100) / 100, label, distinctGenres: counts.size };
 }
@@ -249,7 +249,7 @@ export function computePopularityEraCorrelation(trackLists: SpotifyTrack[][]): C
 
   const n = points.length;
   if (n < 3) {
-    return { coefficient: 0, interpretation: "Not enough data yet.", sampleSize: n };
+    return { coefficient: 0, interpretation: "notEnoughData", sampleSize: n };
   }
 
   const meanYear = points.reduce((s, p) => s + p.year, 0) / n;
@@ -269,14 +269,8 @@ export function computePopularityEraCorrelation(trackLists: SpotifyTrack[][]): C
   const denominator = Math.sqrt(yearVariance * popVariance);
   const coefficient = denominator === 0 ? 0 : numerator / denominator;
 
-  let interpretation: string;
-  if (coefficient > 0.3) {
-    interpretation = "You lean toward newer, more mainstream-popular releases.";
-  } else if (coefficient < -0.3) {
-    interpretation = "You lean toward older or more niche releases relative to their era.";
-  } else {
-    interpretation = "No strong relationship between release era and popularity in your top tracks.";
-  }
+  const interpretation: CorrelationResult["interpretation"] =
+    coefficient > 0.3 ? "newer" : coefficient < -0.3 ? "older" : "neutral";
 
   return { coefficient: Math.round(coefficient * 100) / 100, interpretation, sampleSize: n };
 }

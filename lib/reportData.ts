@@ -37,7 +37,8 @@ export type PeriodReport =
 export async function getPeriodReport(
   accessToken: string,
   granularity: ReportGranularity,
-  requestedKey: string | null
+  requestedKey: string | null,
+  locale: string
 ): Promise<PeriodReport> {
   const totalCount = await prisma.playEvent.count();
   if (totalCount === 0) return { empty: true };
@@ -76,7 +77,7 @@ export async function getPeriodReport(
       emptyPeriod: true,
       granularity,
       key,
-      label: formatPeriodLabel(granularity, key),
+      label: formatPeriodLabel(granularity, key, locale),
       hasPrev,
       hasNext,
       totalPlays: 0,
@@ -102,7 +103,7 @@ export async function getPeriodReport(
     emptyPeriod: false,
     granularity,
     key,
-    label: formatPeriodLabel(granularity, key),
+    label: formatPeriodLabel(granularity, key, locale),
     hasPrev,
     hasNext,
     totalPlays: summary.totalPlays,

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { RankedItem } from "@/lib/historyAnalytics";
 import type { GenreCount } from "@/lib/types";
 import { shiftPeriodKey, type ReportGranularity } from "@/lib/reportPeriods";
@@ -9,6 +10,7 @@ import { CARD_THEMES, DEFAULT_CARD_THEME } from "@/lib/cardThemes";
 import StatCard from "./StatCard";
 import TopGrid from "./TopGrid";
 import GenreChart from "./GenreChart";
+import Header from "./Header";
 
 interface RankedItemWithImage extends RankedItem {
   image?: string | null;
@@ -40,6 +42,7 @@ function trackHref(item: RankedItemWithImage): string | null {
 }
 
 function FeaturedCard({ label, item, href }: { label: string; item?: RankedItemWithImage; href: string | null }) {
+  const tCommon = useTranslations("common");
   if (!item) return null;
   const content = (
     <div className="glass-card group flex items-center gap-4 p-5">
@@ -55,7 +58,7 @@ function FeaturedCard({ label, item, href }: { label: string; item?: RankedItemW
           {item.name}
         </div>
         <div className="truncate text-xs text-[var(--text-tertiary)]">
-          {item.plays} {item.plays === 1 ? "play" : "plays"} · {Math.round(item.minutes)} min
+          {tCommon("units.plays", { count: item.plays })} · {tCommon("units.minutes", { count: Math.round(item.minutes) })}
           {item.subtitle ? ` · ${item.subtitle}` : ""}
         </div>
       </div>
@@ -71,6 +74,9 @@ function FeaturedCard({ label, item, href }: { label: string; item?: RankedItemW
 }
 
 export default function ReportsClient() {
+  const t = useTranslations("reports");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [granularity, setGranularity] = useState<ReportGranularity>("month");
   const [requestedKey, setRequestedKey] = useState<string | null>(null);
@@ -83,8 +89,10 @@ export default function ReportsClient() {
       setState({ status: "loading" });
       try {
         const endpoint = granularity === "year" ? "/api/reports/year" : "/api/reports";
-        const qs = requestedKey ? `?${granularity === "year" ? "year" : "month"}=${requestedKey}` : "";
-        const res = await fetch(`${endpoint}${qs}`, { cache: "no-store" });
+        const qs = new URLSearchParams();
+        if (requestedKey) qs.set(granularity === "year" ? "year" : "month", requestedKey);
+        qs.set("locale", locale);
+        const res = await fetch(`${endpoint}?${qs}`, { cache: "no-store" });
         if (res.status === 401) {
           window.location.href = "/";
           return;
@@ -109,7 +117,7 @@ export default function ReportsClient() {
     return () => {
       cancelled = true;
     };
-  }, [granularity, requestedKey]);
+  }, [granularity, requestedKey, locale]);
 
   const currentKey = state.status === "ready" ? state.data.key : undefined;
 
@@ -120,52 +128,16 @@ export default function ReportsClient() {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">Sonalytics</h1>
-        <div className="flex items-center gap-4">
-          <a
-            href="/history"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Home
-          </a>
-          <a
-            href="/insights"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Insights
-          </a>
-          <a
-            href="/analysis"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Analysis
-          </a>
-          <a
-            href="/import"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Import
-          </a>
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="submit"
-              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              Disconnect
-            </button>
-          </form>
-        </div>
-      </header>
+      <Header active="reports" />
 
       <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-              {granularity === "year" ? "Yearly Wrapped" : "Monthly Wrapped"}
+              {granularity === "year" ? t("yearlyWrapped") : t("monthlyWrapped")}
             </h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              Your top artists, tracks, and genres — by {granularity}.
+              {t("subtitle", { granularity: t(`granularity.${granularity}`) })}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -182,7 +154,7 @@ export default function ReportsClient() {
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
-                    {g}
+                    {t(`granularity.${g}`)}
                   </button>
                 ))}
               </div>
@@ -193,7 +165,7 @@ export default function ReportsClient() {
                   type="button"
                   onClick={() => setRequestedKey(shiftPeriodKey(granularity, currentKey, -1))}
                   disabled={state.status === "ready" && !state.data.hasPrev}
-                  aria-label={`Previous ${granularity}`}
+                  aria-label={t("prevAriaLabel", { granularity: t(`granularity.${granularity}`) })}
                   className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
                 >
                   ‹
@@ -205,7 +177,7 @@ export default function ReportsClient() {
                   type="button"
                   onClick={() => setRequestedKey(shiftPeriodKey(granularity, currentKey, 1))}
                   disabled={state.status === "ready" && !state.data.hasNext}
-                  aria-label={`Next ${granularity}`}
+                  aria-label={t("nextAriaLabel", { granularity: t(`granularity.${granularity}`) })}
                   className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
                 >
                   ›
@@ -216,43 +188,43 @@ export default function ReportsClient() {
         </div>
 
         {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">Loading your wrapped…</div>
+          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
         )}
 
         {state.status === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            Couldn&apos;t load this report: {state.message}
+            {t("loadError", { message: state.message })}
           </div>
         )}
 
         {state.status === "ready" && state.data.empty && (
           <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">No imported history yet.</p>
-            <a
+            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
+            <Link
               href="/import"
               className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
-              Import your data
-            </a>
+              {tCommon("importCta")}
+            </Link>
           </div>
         )}
 
         {state.status === "ready" && !state.data.empty && state.data.emptyPeriod && (
           <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            No plays in {state.data.label}.
+            {t("noPlaysInPeriod", { label: state.data.label ?? "" })}
           </div>
         )}
 
         {state.status === "ready" && !state.data.empty && !state.data.emptyPeriod && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label="Total Plays" value={(state.data.totalPlays ?? 0).toLocaleString()} />
-              <StatCard label="Total Minutes" value={(state.data.totalMinutes ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalPlays")} value={(state.data.totalPlays ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalMinutes")} value={(state.data.totalMinutes ?? 0).toLocaleString()} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FeaturedCard
-                label="Top Artist"
+                label={t("topArtist")}
                 item={state.data.topArtists?.[0]}
                 href={
                   state.data.topArtists?.[0]
@@ -261,16 +233,16 @@ export default function ReportsClient() {
                 }
               />
               <FeaturedCard
-                label="Top Track"
+                label={t("topTrack")}
                 item={state.data.topTracks?.[0]}
                 href={state.data.topTracks?.[0] ? trackHref(state.data.topTracks[0]) : null}
               />
             </div>
 
             <div className="glass-card flex flex-col items-center gap-3 p-6 text-center">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Share your wrapped</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t("shareWrapped")}</h3>
               <p className="text-sm text-[var(--text-secondary)]">
-                A shareable card for {state.data.label} — your top artists, tracks, and minutes listened.
+                {t("shareDescription", { label: state.data.label ?? "" })}
               </p>
               <div className="flex items-center gap-3">
                 {CARD_THEMES.map((theme) => (
@@ -278,9 +250,9 @@ export default function ReportsClient() {
                     key={theme.id}
                     type="button"
                     onClick={() => setCardStyle(theme.id)}
-                    aria-label={theme.label}
+                    aria-label={t(`themes.${theme.id}`)}
                     aria-pressed={cardStyle === theme.id}
-                    title={theme.label}
+                    title={t(`themes.${theme.id}`)}
                     className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
                       cardStyle === theme.id
                         ? "border-[var(--accent)] scale-110"
@@ -291,16 +263,16 @@ export default function ReportsClient() {
                 ))}
               </div>
               <a
-                href={`/api/reports/card?granularity=${granularity}&period=${state.data.key}&style=${cardStyle}`}
+                href={`/api/reports/card?granularity=${granularity}&period=${state.data.key}&style=${cardStyle}&locale=${locale}`}
                 download={`sonalytics-wrapped-${state.data.key}.png`}
                 className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
               >
-                Download Card
+                {t("downloadCard")}
               </a>
             </div>
 
-            <TopGrid title="Top Artists" items={state.data.topArtists ?? []} linkType="artist" />
-            <TopGrid title="Top Tracks" items={state.data.topTracks ?? []} linkType="track" />
+            <TopGrid title={t("topArtists")} items={state.data.topArtists ?? []} linkType="artist" />
+            <TopGrid title={t("topTracks")} items={state.data.topTracks ?? []} linkType="track" />
             <GenreChart data={state.data.topGenres ?? []} />
           </div>
         )}
