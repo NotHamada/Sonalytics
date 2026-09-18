@@ -37,6 +37,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const endParam = searchParams.get("end");
   const start = startParam ? new Date(startParam) : null;
   const end = endParam ? new Date(endParam) : null;
+  const tzOffsetParam = searchParams.get("tzOffset");
+  const tzOffsetMinutes = tzOffsetParam ? Number(tzOffsetParam) : 0;
 
   const rows = await prisma.playEvent.findMany({
     where: {
@@ -72,7 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const spanMs = new Date(summary.latestPlay!).getTime() - new Date(summary.earliestPlay!).getTime();
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
-  const stats = computeEntityStats(trackRows, granularity);
+  const stats = computeEntityStats(trackRows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes);
   const trackName = trackRows[0].trackName ?? "Unknown Track";
   const artistName = trackRows[0].artistName ?? null;
 

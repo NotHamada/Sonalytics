@@ -34,6 +34,12 @@ export async function GET(request: NextRequest) {
   const start = startParam ? new Date(startParam) : null;
   const end = endParam ? new Date(endParam) : null;
 
+  // Offset (minutes) between UTC and the viewer's local time, from `Date.getTimezoneOffset()`
+  // in the browser — used to bucket the trend chart by the viewer's local calendar day, not
+  // the server's (Vercel runs in UTC).
+  const tzOffsetParam = searchParams.get("tzOffset");
+  const tzOffsetMinutes = tzOffsetParam ? Number(tzOffsetParam) : 0;
+
   const rows = await prisma.playEvent.findMany({
     where: {
       playedAt: {
@@ -80,6 +86,6 @@ export async function GET(request: NextRequest) {
     summary,
     topTracks,
     topArtists,
-    trend: computeTrend(rows, granularity),
+    trend: computeTrend(rows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes),
   });
 }

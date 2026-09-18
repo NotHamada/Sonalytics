@@ -16,8 +16,14 @@ export interface EntityStats {
 
 /** Per-entity stats for a single track or artist's own rows (already filtered by the caller).
  *  Mirrors computeSummary/computeTrend's conventions (day vs. month bucketing, skip-rate as a
- *  percent) so this reads consistently with the rest of the app. */
-export function computeEntityStats(rows: PlayRow[], granularity: "day" | "month"): EntityStats {
+ *  percent) so this reads consistently with the rest of the app. Trend buckets are shifted by
+ *  `tzOffsetMinutes` into the viewer's local time, same as computeTrend, so a day bar means the
+ *  same thing regardless of which date range it was queried from. */
+export function computeEntityStats(
+  rows: PlayRow[],
+  granularity: "day" | "month",
+  tzOffsetMinutes: number
+): EntityStats {
   if (rows.length === 0) {
     return { totalPlays: 0, totalMinutes: 0, firstPlayed: null, lastPlayed: null, skipRate: 0, trend: [] };
   }
@@ -35,7 +41,8 @@ export function computeEntityStats(rows: PlayRow[], granularity: "day" | "month"
     if (row.playedAt < earliest) earliest = row.playedAt;
     if (row.playedAt > latest) latest = row.playedAt;
 
-    const key = row.playedAt.toISOString().slice(0, sliceLength);
+    const local = new Date(row.playedAt.getTime() - tzOffsetMinutes * 60_000);
+    const key = local.toISOString().slice(0, sliceLength);
     trendMap.set(key, (trendMap.get(key) ?? 0) + row.msPlayed);
   }
 

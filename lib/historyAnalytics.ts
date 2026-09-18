@@ -147,12 +147,17 @@ export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
 }
 
 /** Buckets by day for short ranges, by month for longer ones — a single bar per day is
- *  fine for a week, useless for three years, so the caller picks based on range span. */
-export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): TrendPoint[] {
+ *  fine for a week, useless for three years, so the caller picks based on range span. Bucketed
+ *  in the viewer's local time (shifted by `tzOffsetMinutes`, matching how the date-range presets
+ *  themselves are computed) rather than UTC — otherwise the same calendar-day bar can silently
+ *  aggregate a different set of plays depending on which query window it was drawn from, since a
+ *  UTC day boundary doesn't line up with the viewer's actual local day. */
+export function computeTrend(rows: PlayRow[], granularity: "day" | "month", tzOffsetMinutes: number): TrendPoint[] {
   const sliceLength = granularity === "day" ? 10 : 7;
   const map = new Map<string, number>();
   for (const row of rows) {
-    const key = row.playedAt.toISOString().slice(0, sliceLength);
+    const local = new Date(row.playedAt.getTime() - tzOffsetMinutes * 60_000);
+    const key = local.toISOString().slice(0, sliceLength);
     map.set(key, (map.get(key) ?? 0) + row.msPlayed);
   }
   return Array.from(map.entries())

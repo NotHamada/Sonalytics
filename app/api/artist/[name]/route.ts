@@ -35,6 +35,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const endParam = searchParams.get("end");
   const start = startParam ? new Date(startParam) : null;
   const end = endParam ? new Date(endParam) : null;
+  const tzOffsetParam = searchParams.get("tzOffset");
+  const tzOffsetMinutes = tzOffsetParam ? Number(tzOffsetParam) : 0;
 
   const rows = await prisma.playEvent.findMany({
     where: {
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
   const artistName = artistRows[0].artistName!;
-  const stats = computeEntityStats(artistRows, granularity);
+  const stats = computeEntityStats(artistRows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes);
   const distinctTracks = new Set(
     artistRows
       .filter((r) => !r.isPodcast && !r.isAudiobook && r.trackName)

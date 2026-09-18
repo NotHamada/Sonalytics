@@ -67,8 +67,9 @@ export default function TrackDetailClient({ id }: { id: string }) {
         const qs = new URLSearchParams();
         if (bounds.start) qs.set("start", bounds.start);
         if (bounds.end) qs.set("end", bounds.end);
+        qs.set("tzOffset", String(new Date().getTimezoneOffset()));
 
-        const res = await fetch(`/api/track/${id}${qs.toString() ? `?${qs}` : ""}`, { cache: "no-store" });
+        const res = await fetch(`/api/track/${id}?${qs}`, { cache: "no-store" });
         if (res.status === 401) {
           window.location.href = "/";
           return;

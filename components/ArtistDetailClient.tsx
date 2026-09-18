@@ -72,8 +72,9 @@ export default function ArtistDetailClient({ name }: { name: string }) {
         const qs = new URLSearchParams();
         if (bounds.start) qs.set("start", bounds.start);
         if (bounds.end) qs.set("end", bounds.end);
+        qs.set("tzOffset", String(new Date().getTimezoneOffset()));
 
-        const res = await fetch(`/api/artist/${encodeURIComponent(name)}${qs.toString() ? `?${qs}` : ""}`, {
+        const res = await fetch(`/api/artist/${encodeURIComponent(name)}?${qs}`, {
           cache: "no-store",
         });
         if (res.status === 401) {
