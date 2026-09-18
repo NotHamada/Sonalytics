@@ -8,6 +8,10 @@ import { attachArtistImages, attachTrackImages, buildRepresentativeTrackUriByArt
 
 const DAY_GRANULARITY_THRESHOLD_MS = 31 * 24 * 60 * 60 * 1000;
 
+// See the same constant in app/api/history/route.ts — every item gets a live Spotify metadata
+// lookup, so an uncapped list can fire enough concurrent requests to trip Spotify's rate limiter.
+const TOP_N_WITH_METADATA = 100;
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ name: string }> }) {
   // Route params come through still URL-encoded in this Next.js version (not auto-decoded) —
   // decode before matching against artistName, or names with spaces never match.
@@ -88,7 +92,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const representativeTrackUriByArtist = buildRepresentativeTrackUriByArtist(artistRows);
 
   const [topTracks, [withImage]] = await Promise.all([
-    attachTrackImages(accessToken, computeTopTracks(artistRows, artistRows.length)),
+    attachTrackImages(accessToken, computeTopTracks(artistRows, TOP_N_WITH_METADATA)),
     attachArtistImages(
       accessToken,
       [{ name: artistName, subtitle: null, trackUri: null, plays: stats.totalPlays, minutes: stats.totalMinutes }],
