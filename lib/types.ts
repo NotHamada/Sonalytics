@@ -21,6 +21,7 @@ export interface SpotifyAlbum {
   name: string;
   release_date: string;
   images: SpotifyImage[];
+  total_tracks?: number;
 }
 
 export interface SpotifyTrack {

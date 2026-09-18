@@ -2,16 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidAccessToken } from "@/lib/spotify-auth";
 import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
-import { computeSummary, computeTopArtists, computeTopTracks, computeTrend } from "@/lib/historyAnalytics";
-import { attachArtistImages, attachTrackImages, buildRepresentativeTrackUriByArtist } from "@/lib/spotifyImages";
+import { computeSummary, computeTopAlbums, computeTopArtists, computeTopTracks, computeTrend } from "@/lib/historyAnalytics";
+import {
+  attachAlbumImages,
+  attachArtistImages,
+  attachTrackImages,
+  buildRepresentativeTrackUriByAlbum,
+  buildRepresentativeTrackUriByArtist,
+  collectTrackIds,
+  fetchTrackLookup,
+} from "@/lib/spotifyImages";
 
 const DAY_GRANULARITY_THRESHOLD_MS = 31 * 24 * 60 * 60 * 1000;
 
-// Every item in the returned list gets a live Spotify metadata lookup, for artists also
-// genres/followers), chunked at Spotify's own 50-ids-per-request limit. Left uncapped, a large
-// enough library fires so many concurrent chunks that Spotify's rate limiter kicks in and the
-// page can stall for minutes. 100 gives 20 pages of browsing (TopGrid pages 5 at a time) for
-// just 2 chunked requests per list — plenty deep without risking a rate-limit stall.
+// Every item in the returned lists gets a live Spotify metadata lookup (a track's own art, an
+// artist's genres/followers, an album's art/track-count), chunked at Spotify's own 50-ids-per-
+// request limit. Left uncapped, a large enough library — now times three categories, with
+// albums added — fires enough concurrent chunks to trip Spotify's rate limiter, which can stall
+// the page for minutes. 100 gives 20 pages of browsing (TopGrid pages 5 at a time) per category
+// for just 2 chunked requests each — plenty deep without risking a rate-limit stall.
 const TOP_N_WITH_METADATA = 100;
 
 export async function GET(request: NextRequest) {
@@ -60,6 +69,7 @@ export async function GET(request: NextRequest) {
       trackUri: true,
       trackName: true,
       artistName: true,
+      albumName: true,
       isPodcast: true,
       isAudiobook: true,
       skipped: true,
@@ -76,11 +86,29 @@ export async function GET(request: NextRequest) {
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
   const representativeTrackUriByArtist = buildRepresentativeTrackUriByArtist(rows);
+  const representativeTrackUriByAlbum = buildRepresentativeTrackUriByAlbum(rows);
 
-  const [topTracks, topArtists] = await Promise.all([
-    attachTrackImages(accessToken, computeTopTracks(rows, TOP_N_WITH_METADATA)),
-    attachArtistImages(accessToken, computeTopArtists(rows, TOP_N_WITH_METADATA), representativeTrackUriByArtist),
+  const topTracksRanked = computeTopTracks(rows, TOP_N_WITH_METADATA);
+  const topArtistsRanked = computeTopArtists(rows, TOP_N_WITH_METADATA);
+  const topAlbumsRanked = computeTopAlbums(rows, TOP_N_WITH_METADATA);
+
+  // One shared track lookup for all three lists (a track's own art, plus the representative
+  // track each artist/album resolves its id through) instead of three separate Spotify passes
+  // over a mostly-overlapping id set — see fetchTrackLookup.
+  const trackLookup = await fetchTrackLookup(accessToken, [
+    ...collectTrackIds(topTracksRanked),
+    ...collectTrackIds(topArtistsRanked, (a) => representativeTrackUriByArtist.get(a.name)),
+    ...collectTrackIds(topAlbumsRanked, (a) => representativeTrackUriByAlbum.get(`${a.name}|${a.subtitle ?? ""}`)),
   ]);
+
+  const topTracks = attachTrackImages(topTracksRanked, trackLookup);
+  const topAlbums = attachAlbumImages(topAlbumsRanked, representativeTrackUriByAlbum, trackLookup);
+  const topArtists = await attachArtistImages(
+    accessToken,
+    topArtistsRanked,
+    representativeTrackUriByArtist,
+    trackLookup
+  );
 
   return NextResponse.json({
     empty: false,
@@ -88,6 +116,7 @@ export async function GET(request: NextRequest) {
     summary,
     topTracks,
     topArtists,
+    topAlbums,
     trend: computeTrend(rows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes),
   });
 }

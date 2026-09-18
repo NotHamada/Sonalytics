@@ -146,6 +146,43 @@ export function computeTopArtists(rows: PlayRow[], topN = 20): RankedItem[] {
     }));
 }
 
+/** Grouped by album+artist together (not album title alone — plenty of albums share a title
+ *  across different artists, e.g. "Greatest Hits"), same key shape playEvent import dedup uses.
+ *  Rows need `albumName` selected, which most PlayRow queries don't select by default. */
+export function computeTopAlbums(rows: (PlayRow & { albumName: string | null })[], topN = 20): RankedItem[] {
+  const map = new Map<
+    string,
+    { name: string; subtitle: string | null; trackUri: string | null; plays: number; ms: number }
+  >();
+  for (const row of rows) {
+    if (row.isPodcast || row.isAudiobook || !row.albumName) continue;
+    const key = `${row.albumName}|${row.artistName ?? ""}`;
+    const existing = map.get(key);
+    if (existing) {
+      existing.plays += 1;
+      existing.ms += row.msPlayed;
+    } else {
+      map.set(key, {
+        name: row.albumName,
+        subtitle: row.artistName,
+        trackUri: row.trackUri,
+        plays: 1,
+        ms: row.msPlayed,
+      });
+    }
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.plays - a.plays)
+    .slice(0, topN)
+    .map((v) => ({
+      name: v.name,
+      subtitle: v.subtitle,
+      trackUri: v.trackUri,
+      plays: v.plays,
+      minutes: toMinutes(v.ms),
+    }));
+}
+
 /** Buckets by day for short ranges, by month for longer ones — a single bar per day is
  *  fine for a week, useless for three years, so the caller picks based on range span. Bucketed
  *  in the viewer's local time (shifted by `tzOffsetMinutes`, matching how the date-range presets

@@ -21,6 +21,10 @@ function artistHref(item: RankedItemWithImage): string {
   return `/artist/${encodeURIComponent(item.name)}`;
 }
 
+function albumHref(item: RankedItemWithImage): string {
+  return `/album/${encodeURIComponent(item.name)}`;
+}
+
 export default function TopGrid({
   title,
   items,
@@ -33,7 +37,7 @@ export default function TopGrid({
   imageShape?: "square" | "circle";
   metric?: "plays" | "minutes";
   /** When set, each card links to that item's detail page. */
-  linkType?: "track" | "artist";
+  linkType?: "track" | "artist" | "album";
 }) {
   const tCommon = useTranslations("common");
   const [page, setPage] = useState(0);
@@ -90,7 +94,14 @@ export default function TopGrid({
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-5">
           {visible.map((item, i) => {
-            const href = linkType === "track" ? trackHref(item) : linkType === "artist" ? artistHref(item) : null;
+            const href =
+              linkType === "track"
+                ? trackHref(item)
+                : linkType === "artist"
+                  ? artistHref(item)
+                  : linkType === "album"
+                    ? albumHref(item)
+                    : null;
             // name+subtitle isn't actually unique — the same title/artist can appear more than
             // once (a track released on multiple albums gets a distinct Spotify id per
             // release), so fold in the item's position too, which is always unique per render.
