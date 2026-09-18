@@ -7,6 +7,13 @@ import { attachArtistImages, attachTrackImages, buildRepresentativeTrackUriByArt
 
 const DAY_GRANULARITY_THRESHOLD_MS = 31 * 24 * 60 * 60 * 1000;
 
+// Every item in the returned list gets a live Spotify metadata lookup, for artists also
+// genres/followers), chunked at Spotify's own 50-ids-per-request limit. Left uncapped, a large
+// enough library fires so many concurrent chunks that Spotify's rate limiter kicks in and the
+// page can stall for minutes. 100 gives 20 pages of browsing (TopGrid pages 5 at a time) for
+// just 2 chunked requests per list — plenty deep without risking a rate-limit stall.
+const TOP_N_WITH_METADATA = 100;
+
 export async function GET(request: NextRequest) {
   const accessToken = await getValidAccessToken();
   if (!accessToken) {
@@ -70,14 +77,9 @@ export async function GET(request: NextRequest) {
 
   const representativeTrackUriByArtist = buildRepresentativeTrackUriByArtist(rows);
 
-  // "All" distinct tracks/artists — capped only by the number of rows (a distinct-item count
-  // can never exceed the row count), which is to say not meaningfully capped at all. Image
-  // lookups for the full list are handled transparently in chunks of 50 (Spotify's own batch
-  // limit) inside getTracksByIds/getArtistsByIds, so every item gets a photo, not just the
-  // first page.
   const [topTracks, topArtists] = await Promise.all([
-    attachTrackImages(accessToken, computeTopTracks(rows, rows.length)),
-    attachArtistImages(accessToken, computeTopArtists(rows, rows.length), representativeTrackUriByArtist),
+    attachTrackImages(accessToken, computeTopTracks(rows, TOP_N_WITH_METADATA)),
+    attachArtistImages(accessToken, computeTopArtists(rows, TOP_N_WITH_METADATA), representativeTrackUriByArtist),
   ]);
 
   return NextResponse.json({
