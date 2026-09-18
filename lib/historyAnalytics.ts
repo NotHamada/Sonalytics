@@ -1,4 +1,5 @@
 import type { PlayEvent } from "@prisma/client";
+import { formatHourLabel, formatWeekdayLabel } from "./localeFormat";
 
 export interface HistorySummary {
   totalPlays: number;
@@ -162,19 +163,11 @@ export function computeTrend(rows: PlayRow[], granularity: "day" | "month"): Tre
     }));
 }
 
-const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
-  const period = h < 12 ? "a" : "p";
-  const display = h % 12 === 0 ? 12 : h % 12;
-  return `${display}${period}`;
-});
-
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 /** Buckets every play by hour-of-day and day-of-week in the viewer's local time. `playedAt`
  *  is stored in UTC (Spotify's own export format), and there's no per-play timezone info, so
  *  we shift by the browser's current UTC offset rather than each play's true local time —
  *  close enough for a trends view, and avoids an expensive Intl call per row. */
-export function computeTimeOfDay(rows: TimingRow[], tzOffsetMinutes: number): TimeOfDay {
+export function computeTimeOfDay(rows: TimingRow[], tzOffsetMinutes: number, locale: string): TimeOfDay {
   const hourBuckets = Array.from({ length: 24 }, () => ({ plays: 0, ms: 0 }));
   const weekdayBuckets = Array.from({ length: 7 }, () => ({ plays: 0, ms: 0 }));
   const heatmapMs = new Map<string, number>();
@@ -195,13 +188,13 @@ export function computeTimeOfDay(rows: TimingRow[], tzOffsetMinutes: number): Ti
 
   const byHour = hourBuckets.map((b, hour) => ({
     hour,
-    label: HOUR_LABELS[hour],
+    label: formatHourLabel(hour, locale),
     plays: b.plays,
     minutes: toMinutes(b.ms),
   }));
   const byWeekday = weekdayBuckets.map((b, day) => ({
     day,
-    label: WEEKDAY_LABELS[day],
+    label: formatWeekdayLabel(day, locale),
     plays: b.plays,
     minutes: toMinutes(b.ms),
   }));

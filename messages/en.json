@@ -1,0 +1,382 @@
+{
+  "common": {
+    "nav": {
+      "history": "History",
+      "insights": "Insights",
+      "analysis": "Analysis",
+      "reports": "Reports",
+      "import": "Import",
+      "disconnect": "Disconnect"
+    },
+    "noHistory": "No imported history yet.",
+    "importCta": "Import your data",
+    "noPlaysInRange": "No plays in this time range.",
+    "notEnoughData": "Not enough data yet.",
+    "noneYet": "None yet.",
+    "nothingHereYet": "Nothing here yet.",
+    "previous": "Previous",
+    "next": "Next",
+    "pageRange": "{start}–{end} of {total}",
+    "shareOfSkippedEarly": "Share of plays skipped early",
+    "backToFullHistory": "‹ Back to Full History",
+    "stats": {
+      "totalPlays": "Total Plays",
+      "totalMinutes": "Total Minutes",
+      "since": "Since",
+      "through": "Through"
+    },
+    "units": {
+      "plays": "{count, plural, one {# play} other {# plays}}",
+      "minutes": "{count} min",
+      "minutesLabel": "Minutes",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "files": "{count, plural, one {# file} other {# files}}"
+    },
+    "footer": "Data provided by Spotify. This app is not affiliated with or endorsed by Spotify.",
+    "rangeSelector": {
+      "today": "Today",
+      "thisWeek": "This Week",
+      "fourWeeks": "4 Weeks",
+      "sixMonths": "6 Months",
+      "lifetime": "Lifetime",
+      "custom": "Custom",
+      "allRanges": "‹ All ranges"
+    },
+    "datePicker": {
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "month": "Month",
+      "year": "Year",
+      "pickStartDate": "Pick a start date",
+      "pickEndDate": "Pick an end date"
+    }
+  },
+  "landing": {
+    "eyebrow": "Personal Spotify Analytics",
+    "title": "Sonalytics",
+    "subtitle": "Turn your listening history into a proper data story — taste trends, genre breakdown, diversity scores, and discovery patterns, built entirely from your own Spotify data.",
+    "accessDenied": "You declined access, so there's nothing to show yet.",
+    "genericError": "Something went wrong: {error}",
+    "connect": "Connect with Spotify",
+    "connectHint": "Requests read-only access to your top items, recent listening history, and saved tracks count. Nothing is modified on your account.",
+    "whatYoullSee": "What you'll see",
+    "features": {
+      "topArtistsTracks": {
+        "title": "Top Artists & Tracks",
+        "description": "Rankings across last 4 weeks, 6 months, and all time — see how your taste shifts."
+      },
+      "genreBreakdown": {
+        "title": "Genre Breakdown",
+        "description": "Every genre tag across your top artists, ranked by how often it shows up."
+      },
+      "fullHistory": {
+        "title": "Full Listening History",
+        "description": "Import your Extended Streaming History for real multi-year stats — a listening calendar, trends, and any date range you pick."
+      },
+      "tasteDiversity": {
+        "title": "Taste Diversity",
+        "description": "A statistical score for how focused vs. eclectic your listening really is."
+      },
+      "discoveryLoyalty": {
+        "title": "Discovery vs. Loyalty",
+        "description": "What's new to your rotation, what's core, and what's quietly fading out."
+      },
+      "genrePairings": {
+        "title": "Genre Pairings",
+        "description": "Which genres most often show up together on the same artist, ranked."
+      }
+    },
+    "footer": {
+      "readOnly": "Read-only access",
+      "noCache": "Nothing cached beyond your session",
+      "notAffiliated": "Not affiliated with or endorsed by Spotify"
+    }
+  },
+  "history": {
+    "loadingDashboard": "Loading your listening data…",
+    "loadErrorDashboard": "Couldn't load your data: {message}",
+    "loadingHistory": "Loading your imported history…",
+    "loadErrorHistory": "Couldn't load your history: {message}",
+    "sectionHeading": "Full History",
+    "savedTracks": "Saved Tracks",
+    "avgPopularity": "Avg. Track Popularity",
+    "avgPopularityHint": "{count} tracks sampled",
+    "deepCuts": "Deep Cuts",
+    "deepCutsHint": "Tracks under 40 popularity",
+    "distinctGenres": "Distinct Genres",
+    "tasteDiversity": "Taste Diversity",
+    "tasteDiversityHint": "Entropy score {score}",
+    "eraVsPopularity": "Era vs. Popularity",
+    "diversityLabel": {
+      "unknown": "Unknown",
+      "focused": "Focused",
+      "balanced": "Balanced",
+      "eclectic": "Eclectic"
+    },
+    "eraCorrelation": {
+      "notEnoughData": "Not enough data yet.",
+      "newer": "You lean toward newer, more mainstream-popular releases.",
+      "older": "You lean toward older or more niche releases relative to their era.",
+      "neutral": "No strong relationship between release era and popularity in your top tracks."
+    },
+    "minutesOverTime": "Minutes Over Time",
+    "topTracks": "Top Tracks",
+    "topArtists": "Top Artists",
+    "popularityDistribution": "Popularity Distribution",
+    "tracksBarName": "Tracks",
+    "notEnoughTopTracks": "Not enough top tracks to build a distribution yet.",
+    "tasteByDecade": "Taste by Decade",
+    "notEnoughReleaseData": "Not enough release-date data yet.",
+    "discoveryVsLoyalty": "Discovery vs. Loyalty",
+    "cohorts": {
+      "artists": "Artists",
+      "tracks": "Tracks"
+    },
+    "cohortsSubtitle": "Comparing your last-4-weeks, 6-month, and all-time top lists.",
+    "cohortColumns": {
+      "core": { "title": "Core", "hint": "In every window — your enduring taste" },
+      "discoveries": { "title": "New Discoveries", "hint": "Only in the last 4 weeks" },
+      "fading": { "title": "Fading Out", "hint": "Was a favorite, less so lately" }
+    },
+    "genreBreakdown": "Genre Breakdown",
+    "notEnoughGenreData": "Not enough data to determine genres yet.",
+    "artistsBarName": "Artists",
+    "genrePairings": "Genre Pairings",
+    "genrePairingsSubtitle": "Genres that most often tag the same artist in your top artists.",
+    "notEnoughGenrePairings": "Not enough genre overlap to find pairings yet."
+  },
+  "insights": {
+    "title": "Time of Day",
+    "subtitle": "When you listen, not just what.",
+    "loading": "Loading your listening patterns…",
+    "loadError": "Couldn't load insights: {message}",
+    "peakHour": "Peak Hour",
+    "peakHourHint": "{minutes} min total",
+    "peakDay": "Peak Day",
+    "peakDayHint": "{minutes} min total",
+    "byHour": "Listening by Hour of Day",
+    "byWeekday": "Listening by Day of Week",
+    "minutesBarName": "Minutes",
+    "heatmapTitle": "Listening by Hour & Day",
+    "heatmapSubtitle": "When during the week you listen most — lighter means more minutes.",
+    "dayPartTitle": "Day Part Breakdown",
+    "dayPartSubtitle": "Share of listening time across the day.",
+    "dayPart": {
+      "night": "Night",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    }
+  },
+  "analysis": {
+    "title": "Deep Analysis",
+    "subtitle": "Sessions, streaks, and behavioral trends across your listening history.",
+    "loading": "Crunching your listening history…",
+    "loadError": "Couldn't load analysis: {message}",
+    "period": {
+      "hour": "Hour",
+      "day": "Day",
+      "month": "Month"
+    },
+    "periodPlural": {
+      "hour": "hours",
+      "day": "days",
+      "month": "months"
+    },
+    "periodAdj": {
+      "hour": "hourly",
+      "day": "daily",
+      "month": "monthly"
+    },
+    "longestStreak": "Longest Streak",
+    "currentStreak": "Current Streak",
+    "totalSessions": "Total Sessions",
+    "avgSession": "Avg. Session",
+    "avgSessionHint": "{count} tracks avg",
+    "skipRate": "Skip Rate",
+    "distinctArtists": "Distinct Artists",
+    "sessionsPer": "Sessions per {period}",
+    "sessionsSubtitle": "A session is a run of plays with no gap over 30 minutes.",
+    "sessionsBarName": "Sessions",
+    "skipRateOverTime": "Skip Rate Over Time",
+    "skipRateSubtitle": "Share of plays skipped early, by {periodAdj}.",
+    "skipRateBarName": "Skip %",
+    "diversityOverTime": "Taste Diversity Over Time",
+    "diversitySubtitle": "0-100 score from your {periodAdj} artist mix — low means a few artists dominated, high means it was spread evenly.",
+    "diversityBarName": "Diversity",
+    "newArtistsPer": "New Artists Discovered per {period}",
+    "newArtistsSubtitle": "Counted against the day each artist first appears anywhere in your history.",
+    "newArtistsBarName": "New Artists",
+    "statisticalHighlights": "Statistical Highlights",
+    "listeningTrend": "Listening Trend",
+    "trendUp": "↑ Trending Up",
+    "trendDown": "↓ Trending Down",
+    "trendFlat": "→ Flat",
+    "trendInterpretation": {
+      "notEnough": "Not enough {periodPlural} of history yet.",
+      "flat": "Roughly flat over {count} {periodPlural} (R²={r2}).",
+      "trending": "{direction, select, up {Trending up} down {Trending down} other {Trending}} by about {slope} min/{periodUnit} over {count} {periodPlural} (R²={r2})."
+    },
+    "weekdayVsWeekend": "Weekday vs. Weekend",
+    "weekdayVsWeekendValue": "{weekday} vs {weekend} min/day",
+    "weekdayVsWeekendInterpretation": {
+      "notEnough": "Not enough days of history yet.",
+      "significant": "Statistically significant: you listen more on {higher} (p={pValue}).",
+      "notSignificant": "No statistically significant difference between weekday and weekend listening (p={pValue})."
+    },
+    "weekdays": "weekdays",
+    "weekends": "weekends",
+    "correlationHighlights": "Correlation Highlights",
+    "correlationSubtitle": "Pearson correlation (r) across your {periodAdj} metrics — closer to ±1 means a stronger relationship.",
+    "correlationValue": "r = {coefficient}",
+    "correlationInterpretation": {
+      "unrelated": "Essentially unrelated {periodAdj} to {periodAdj}.",
+      "weak": "Weakly correlated — {metricA} and {metricB} tend to {direction}.",
+      "moderate": "Moderately correlated — {metricA} and {metricB} tend to {direction}.",
+      "strong": "Strongly correlated — {metricA} and {metricB} tend to {direction}."
+    },
+    "correlationDirection": {
+      "together": "rise and fall together",
+      "opposite": "move in opposite directions"
+    },
+    "metrics": {
+      "minutes": "Minutes",
+      "skipRate": "Skip Rate",
+      "diversity": "Diversity",
+      "newArtists": "New Artists"
+    },
+    "spikeDays": "Spike Days",
+    "spikeDaysSubtitle": "Days well above your typical active day.",
+    "quietDays": "Quiet Days",
+    "quietDaysSubtitle": "Active days well below your typical listening.",
+    "noneStoodOut": "None stood out.",
+    "dayStat": "{minutes} min · {zScore}σ"
+  },
+  "reports": {
+    "monthlyWrapped": "Monthly Wrapped",
+    "yearlyWrapped": "Yearly Wrapped",
+    "subtitle": "Your top artists, tracks, and genres — by {granularity}.",
+    "granularity": {
+      "month": "month",
+      "year": "year"
+    },
+    "loading": "Loading your wrapped…",
+    "loadError": "Couldn't load this report: {message}",
+    "noPlaysInPeriod": "No plays in {label}.",
+    "topArtist": "Top Artist",
+    "topTrack": "Top Track",
+    "shareWrapped": "Share your wrapped",
+    "shareDescription": "A shareable card for {label} — your top artists, tracks, and minutes listened.",
+    "downloadCard": "Download Card",
+    "topArtists": "Top Artists",
+    "topTracks": "Top Tracks",
+    "prevAriaLabel": "Previous {granularity}",
+    "nextAriaLabel": "Next {granularity}",
+    "themes": {
+      "midnight": "Midnight",
+      "sunset": "Sunset",
+      "paper": "Paper"
+    }
+  },
+  "trackDetail": {
+    "loading": "Loading track…",
+    "loadError": "Couldn't load this track: {message}",
+    "notFoundInRange": "This track wasn't played in this time range.",
+    "popularity": "Popularity {score}/100",
+    "rank": "#{rank} of {total} tracks",
+    "skipRate": "Skip Rate",
+    "throughDate": "Through {date}",
+    "playsOverTime": "Plays Over Time"
+  },
+  "artistDetail": {
+    "loading": "Loading artist…",
+    "loadError": "Couldn't load this artist: {message}",
+    "notFoundInRange": "This artist wasn't played in this time range.",
+    "followers": "{count} followers",
+    "rank": "#{rank} of {total} artists",
+    "distinctTracks": "Distinct Tracks",
+    "skipRate": "Skip Rate",
+    "playsOverTime": "Plays Over Time",
+    "topTracksBy": "Top Tracks by {name}"
+  },
+  "import": {
+    "steps": {
+      "requestData": {
+        "title": "Request your data",
+        "description": "Spotify account → Privacy settings → Request data → Extended Streaming History."
+      },
+      "waitEmail": {
+        "title": "Wait for the email",
+        "description": "Spotify emails you a download link once it's ready — usually a few days."
+      },
+      "unzipUpload": {
+        "title": "Unzip and upload",
+        "description": "Select every Streaming_History_Audio/Video_*.json file from the unzipped folder."
+      }
+    },
+    "stepLabel": "Step {number}",
+    "title": "Import your history",
+    "subtitle": "The live Spotify API only exposes your last 50 plays. Import your Extended Streaming History for real multi-year stats — a listening calendar, trends, and any date range you pick.",
+    "playsImported": "Plays Imported",
+    "uploadTitle": "Upload your files",
+    "uploadDescriptionPrefix": "Select every",
+    "uploadDescriptionMiddle": "and",
+    "uploadDescriptionSuffix": "file from the unzipped export — same format, just audio vs. video plays.",
+    "chooseFiles": "Choose files",
+    "importing": "Importing…",
+    "importedSummary": "Imported {inserted} new plays ({parsed} parsed across {files}).",
+    "entries": "{count} entries",
+    "viewHistory": "View your history →"
+  },
+  "formulas": {
+    "history": {
+      "avgPopularity": "Mean of Spotify's own 0-100 popularity score across your deduplicated top tracks (short/medium/long-term windows combined).",
+      "deepCuts": "percent = (top tracks with popularity < 40 ÷ total deduplicated top tracks) × 100.",
+      "tasteDiversity": "Shannon entropy of your genre distribution, normalized 0-1 by the max possible entropy for that many distinct genres: score = −Σ p·log₂(p) ÷ log₂(N), where p is each genre's share of tagged artists and N is the number of distinct genres.",
+      "eraVsPopularity": "Pearson correlation (r) between each top track's release year and its popularity score: r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), where dx/dy are each point's distance from the mean year/popularity.",
+      "popularityDistribution": "Track count per 10-point bucket of Spotify's 0-100 popularity score, across your deduplicated top tracks.",
+      "tasteByDecade": "Track count grouped by the release decade of each top track's album (release year, rounded down to the nearest 10).",
+      "genreBreakdown": "Count of distinct artists (deduplicated by Spotify id) tagged with each genre, across your top-artist lists — one count per artist per genre, not weighted by plays.",
+      "cohorts": "Classified by presence across Spotify's short-term (~4 weeks), medium-term (~6 months), and long-term (years) top-item windows: Core = in all three, New Discoveries = only in the short-term window, Fading Out = in medium/long-term but has dropped out of short-term.",
+      "genrePairings": "Count of top artists tagged with both genres at once, across your deduplicated short/medium/long-term top-artist lists — a simple co-occurrence count, not a normalized association measure."
+    },
+    "insights": {
+      "peakHour": "The hour-of-day (0-23, your local time) with the highest total minutes summed across your selected range.",
+      "peakDay": "The day-of-week (your local time) with the highest total minutes summed across your selected range.",
+      "byHour": "Total minutes played, summed by hour-of-day (your local time) across your selected range — a play at 9:15pm on any date adds to the 9pm bucket.",
+      "byWeekday": "Total minutes played, summed by day-of-week (your local time) across your selected range.",
+      "heatmap": "Each cell sums total minutes played in that hour/weekday slot. Opacity = 0.2 + 0.8 × (cell minutes ÷ busiest cell's minutes), so the busiest slot is fully opaque and empty slots fall back to the divider color.",
+      "dayPartBreakdown": "percent = (minutes played in that part of day ÷ total minutes) × 100, where each hour-of-day bucket is assigned to Night (12a–6a), Morning (6a–12p), Afternoon (12p–6p), or Evening (6p–12a)."
+    },
+    "analysis": {
+      "longestStreak": "Longest run of consecutive calendar days (your local time) with at least one play, across your full history.",
+      "currentStreak": "Run of consecutive calendar days with a play, ending on the most recent day present in your data (not necessarily today).",
+      "totalSessions": "A new session starts whenever the gap since the previous play ended exceeds 30 minutes; consecutive plays within that gap merge into one session.",
+      "avgSession": "Mean session duration and track count across every session in the selected range (session = a run of plays with no gap over 30 minutes).",
+      "skipRate": "percent = (plays where Spotify's own export marks skipped: true ÷ total plays) × 100.",
+      "distinctArtists": "Count of distinct artist names across all plays in the selected range.",
+      "sessionsPer": "Sessions are built by sorting all plays chronologically and starting a new one whenever the gap since the previous play ended exceeds 30 minutes; each bar counts sessions whose start falls in that period.",
+      "skipRateOverTime": "percent = (plays marked skipped ÷ total plays) × 100, computed separately within each period.",
+      "diversityOverTime": "Normalized Shannon entropy of each period's artist play-share, scaled 0-100: score = 100 × (−Σ p·log₂(p) ÷ log₂(N)), where p is an artist's share of that period's plays and N is the number of distinct artists played that period.",
+      "newArtistsPer": "Each artist's first-ever play (found across your FULL history, not just the selected range) is bucketed by period; a period's bar is the count of artists whose first play falls there.",
+      "listeningTrend": "Least-squares linear regression of total minutes per period against the period index: slope = Σ(dx·dy) ÷ Σ(dx²). R² (= Pearson r²) measures fit quality, 0-1. Direction is 'flat' when |slope| is under 2% of the average minutes per period — otherwise up/down.",
+      "weekdayVsWeekend": "Welch's t-test on daily total minutes, weekday vs weekend: t = (mean₁ − mean₂) ÷ √(var₁/n₁ + var₂/n₂). The two-tailed p-value comes from the normal approximation to the t-distribution (accurate here since there are usually dozens to hundreds of days per group); significant if p < 0.05.",
+      "correlationHighlights": "Pearson correlation r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), computed pairwise across four per-period series (Minutes, Skip Rate, Diversity, New Artists), each built from the same aligned, equal-length list of periods.",
+      "spikeDays": "z-score = (day's total minutes − mean daily minutes) ÷ standard deviation, across every active day in your history. The top 3 days with z > 2 are shown.",
+      "quietDays": "Same z-score as Spike Days (day's minutes − mean ÷ standard deviation), showing the 3 lowest days with z < −2."
+    }
+  },
+  "card": {
+    "sonalytics": "Sonalytics",
+    "monthlyWrapped": "MONTHLY WRAPPED",
+    "importFirst": "Import your Spotify history first",
+    "noPlaysInPeriod": "No plays in {label}",
+    "yourWrapped": "Your Wrapped",
+    "forPeriod": "for {label}",
+    "topArtists": "Top Artists",
+    "topTracks": "Top Tracks",
+    "minutesListened": "Minutes Listened",
+    "minutesUnit": "{count} minutes",
+    "personalSpotifyAnalytics": "Personal Spotify Analytics"
+  }
+}

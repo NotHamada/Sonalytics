@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { redirect } from "next/navigation";
+import NextLink from "next/link";
+import { getTranslations } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
 import { readStoredTokens } from "@/lib/spotify-auth";
 
 const ICON_PROPS = {
@@ -7,10 +9,9 @@ const ICON_PROPS = {
   className: "h-5 w-5",
 };
 
-const FEATURES: { title: string; description: string; tint: "accent" | "violet"; icon: ReactNode }[] = [
+const FEATURES: { key: string; tint: "accent" | "violet"; icon: ReactNode }[] = [
   {
-    title: "Top Artists & Tracks",
-    description: "Rankings across last 4 weeks, 6 months, and all time — see how your taste shifts.",
+    key: "topArtistsTracks",
     tint: "accent",
     icon: (
       <svg {...ICON_PROPS} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -23,8 +24,7 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
     ),
   },
   {
-    title: "Genre Breakdown",
-    description: "Every genre tag across your top artists, ranked by how often it shows up.",
+    key: "genreBreakdown",
     tint: "violet",
     icon: (
       <svg {...ICON_PROPS} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -34,9 +34,7 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
     ),
   },
   {
-    title: "Full Listening History",
-    description:
-      "Import your Extended Streaming History for real multi-year stats — a listening calendar, trends, and any date range you pick.",
+    key: "fullHistory",
     tint: "accent",
     icon: (
       <svg {...ICON_PROPS} fill="currentColor" stroke="none">
@@ -53,8 +51,7 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
     ),
   },
   {
-    title: "Taste Diversity",
-    description: "A statistical score for how focused vs. eclectic your listening really is.",
+    key: "tasteDiversity",
     tint: "violet",
     icon: (
       <svg {...ICON_PROPS} fill="currentColor" stroke="none">
@@ -68,8 +65,7 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
     ),
   },
   {
-    title: "Discovery vs. Loyalty",
-    description: "What's new to your rotation, what's core, and what's quietly fading out.",
+    key: "discoveryLoyalty",
     tint: "accent",
     icon: (
       <svg {...ICON_PROPS} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -79,8 +75,7 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
     ),
   },
   {
-    title: "Genre Pairings",
-    description: "Which genres most often show up together on the same artist, ranked.",
+    key: "genrePairings",
     tint: "violet",
     icon: (
       <svg {...ICON_PROPS} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -92,61 +87,55 @@ const FEATURES: { title: string; description: string; tint: "accent" | "violet";
 ];
 
 export default async function Home({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  const { locale } = await params;
   const tokens = await readStoredTokens();
   if (tokens) {
-    redirect("/history");
+    redirect({ href: "/history", locale });
   }
 
   const { error } = await searchParams;
+  const t = await getTranslations({ locale, namespace: "landing" });
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-20 pt-20 sm:pt-28">
       <section className="text-center">
         <div className="glass-pill mx-auto mb-6 inline-flex rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
-          Personal Spotify Analytics
+          {t("eyebrow")}
         </div>
 
-        <h1 className="text-5xl font-bold tracking-tight text-[var(--text-primary)] sm:text-6xl">
-          Sonalytics
-        </h1>
+        <h1 className="text-5xl font-bold tracking-tight text-[var(--text-primary)] sm:text-6xl">{t("title")}</h1>
 
-        <p className="mx-auto mt-5 max-w-xl text-lg text-[var(--text-secondary)]">
-          Turn your listening history into a proper data story — taste trends, genre breakdown,
-          diversity scores, and discovery patterns, built entirely from your own Spotify data.
-        </p>
+        <p className="mx-auto mt-5 max-w-xl text-lg text-[var(--text-secondary)]">{t("subtitle")}</p>
 
         {error && (
           <div className="mx-auto mt-6 max-w-md rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            {error === "access_denied"
-              ? "You declined access, so there's nothing to show yet."
-              : `Something went wrong: ${error}`}
+            {error === "access_denied" ? t("accessDenied") : t("genericError", { error })}
           </div>
         )}
 
-        <a
+        <NextLink
           href="/api/auth/login"
           className="glow-accent mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-7 py-3.5 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
         >
-          Connect with Spotify
-        </a>
+          {t("connect")}
+        </NextLink>
 
-        <p className="mx-auto mt-4 max-w-md text-xs text-[var(--text-tertiary)]">
-          Requests read-only access to your top items, recent listening history, and saved
-          tracks count. Nothing is modified on your account.
-        </p>
+        <p className="mx-auto mt-4 max-w-md text-xs text-[var(--text-tertiary)]">{t("connectHint")}</p>
       </section>
 
       <section className="mt-24">
         <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
-          What you&apos;ll see
+          {t("whatYoullSee")}
         </h2>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
-            <div key={feature.title} className="glass-card p-6">
+            <div key={feature.key} className="glass-card p-6">
               <div
                 className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
                 style={{
@@ -156,19 +145,23 @@ export default async function Home({
               >
                 {feature.icon}
               </div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">{feature.title}</h3>
-              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{feature.description}</p>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                {t(`features.${feature.key}.title`)}
+              </h3>
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
+                {t(`features.${feature.key}.description`)}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       <section className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[var(--text-tertiary)]">
-        <span>Read-only access</span>
+        <span>{t("footer.readOnly")}</span>
         <span aria-hidden="true">·</span>
-        <span>Nothing cached beyond your session</span>
+        <span>{t("footer.noCache")}</span>
         <span aria-hidden="true">·</span>
-        <span>Not affiliated with or endorsed by Spotify</span>
+        <span>{t("footer.notAffiliated")}</span>
       </section>
     </div>
   );

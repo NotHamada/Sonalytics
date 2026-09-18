@@ -1,21 +1,7 @@
 import type { GenreCount } from "./types";
+import { formatMonthYearLabel } from "./localeFormat";
 
 export type ReportGranularity = "month" | "year";
-
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 function parseMonthKey(key: string): { year: number; month: number } | null {
   const match = /^(\d{4})-(\d{2})$/.exec(key);
@@ -55,11 +41,11 @@ export function toPeriodKey(granularity: ReportGranularity, date: Date): string 
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-export function formatPeriodLabel(granularity: ReportGranularity, key: string): string {
+export function formatPeriodLabel(granularity: ReportGranularity, key: string, locale: string): string {
   if (granularity === "year") return key;
   const parsed = parseMonthKey(key);
   if (!parsed) return key;
-  return `${MONTH_NAMES[parsed.month - 1]} ${parsed.year}`;
+  return formatMonthYearLabel(parsed.year, parsed.month - 1, locale);
 }
 
 export function shiftPeriodKey(granularity: ReportGranularity, key: string, delta: number): string {

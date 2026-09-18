@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { hasLocale } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import Script from "next/script";
+import { routing } from "@/i18n/routing";
+import "../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,22 +33,29 @@ if (location.hostname === "localhost") {
 }
 `;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      {process.env.NODE_ENV !== "production" && (
-        <head>
-          <script dangerouslySetInnerHTML={{ __html: CANONICAL_HOST_SCRIPT }} />
-        </head>
-      )}
       <body className="min-h-full flex flex-col">
+        {process.env.NODE_ENV !== "production" && (
+          <Script id="canonical-host" strategy="beforeInteractive">
+            {CANONICAL_HOST_SCRIPT}
+          </Script>
+        )}
         <div className="bg-mesh" aria-hidden="true">
           <div className="blob-3" />
         </div>
-        {children}
+        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>
   );

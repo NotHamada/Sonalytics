@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import HistogramChart from "./HistogramChart";
 import StatCard from "./StatCard";
 import MiniPlayer from "./MiniPlayer";
+import Header from "./Header";
+import { Link } from "@/i18n/navigation";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface TrendPoint {
@@ -44,6 +47,9 @@ type LoadState =
   | { status: "ready"; data: TrackDetailData };
 
 export default function TrackDetailClient({ id }: { id: string }) {
+  const t = useTranslations("trackDetail");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
@@ -91,52 +97,16 @@ export default function TrackDetailClient({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">Sonalytics</h1>
-        <div className="flex items-center gap-4">
-          <a
-            href="/history"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Home
-          </a>
-          <a
-            href="/insights"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Insights
-          </a>
-          <a
-            href="/analysis"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Analysis
-          </a>
-          <a
-            href="/reports"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Reports
-          </a>
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="submit"
-              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              Disconnect
-            </button>
-          </form>
-        </div>
-      </header>
+      <Header hideImport />
 
       <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <a
+          <Link
             href="/history"
             className="inline-flex items-center gap-1 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >
-            ‹ Back to Full History
-          </a>
+            {tCommon("backToFullHistory")}
+          </Link>
           {!(state.status === "ready" && state.data.empty) && (
             <RangeSelector
               preset={preset}
@@ -152,30 +122,30 @@ export default function TrackDetailClient({ id }: { id: string }) {
         </div>
 
         {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">Loading track…</div>
+          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
         )}
 
         {state.status === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            Couldn&apos;t load this track: {state.message}
+            {t("loadError", { message: state.message })}
           </div>
         )}
 
         {state.status === "ready" && state.data.empty && (
           <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">No imported history yet.</p>
-            <a
+            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
+            <Link
               href="/import"
               className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
-              Import your data
-            </a>
+              {tCommon("importCta")}
+            </Link>
           </div>
         )}
 
         {state.status === "ready" && !state.data.empty && (state.data.emptyRange || state.data.notFound) && (
           <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            {state.data.notFound ? "This track wasn't played in this time range." : "No plays in this time range."}
+            {state.data.notFound ? t("notFoundInRange") : tCommon("noPlaysInRange")}
           </div>
         )}
 
@@ -192,19 +162,19 @@ export default function TrackDetailClient({ id }: { id: string }) {
                 <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
                   {state.data.artistName && (
-                    <a
+                    <Link
                       href={`/artist/${encodeURIComponent(state.data.artistName)}`}
                       className="mt-1 inline-block text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
                     >
                       {state.data.artistName}
-                    </a>
+                    </Link>
                   )}
                   {(state.data.albumName || state.data.durationMs != null || state.data.popularity != null) && (
                     <p className="mt-1 text-xs text-[var(--text-tertiary)]">
                       {[
                         state.data.albumName,
                         state.data.durationMs != null ? formatDuration(state.data.durationMs) : null,
-                        state.data.popularity != null ? `Popularity ${state.data.popularity}/100` : null,
+                        state.data.popularity != null ? t("popularity", { score: state.data.popularity }) : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -212,7 +182,7 @@ export default function TrackDetailClient({ id }: { id: string }) {
                   )}
                   {state.data.rank != null && (
                     <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-                      #{state.data.rank} of {state.data.totalRanked} tracks
+                      {t("rank", { rank: state.data.rank, total: state.data.totalRanked ?? 0 })}
                     </p>
                   )}
                 </div>
@@ -224,29 +194,29 @@ export default function TrackDetailClient({ id }: { id: string }) {
             </div>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label="Total Plays" value={(state.data.totalPlays ?? 0).toLocaleString()} />
-              <StatCard label="Total Minutes" value={(state.data.totalMinutes ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalPlays")} value={(state.data.totalPlays ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalMinutes")} value={(state.data.totalMinutes ?? 0).toLocaleString()} />
               <StatCard
-                label="Skip Rate"
+                label={t("skipRate")}
                 value={`${state.data.skipRate ?? 0}%`}
-                hint="Share of plays skipped early"
+                hint={tCommon("shareOfSkippedEarly")}
               />
               <StatCard
-                label="Since"
-                value={state.data.firstPlayed ? new Date(state.data.firstPlayed).toLocaleDateString() : "—"}
+                label={tCommon("stats.since")}
+                value={state.data.firstPlayed ? new Date(state.data.firstPlayed).toLocaleDateString(locale) : "—"}
                 hint={
                   state.data.lastPlayed
-                    ? `Through ${new Date(state.data.lastPlayed).toLocaleDateString()}`
+                    ? t("throughDate", { date: new Date(state.data.lastPlayed).toLocaleDateString(locale) })
                     : undefined
                 }
               />
             </div>
 
             <HistogramChart
-              title="Plays Over Time"
-              data={(state.data.trend ?? []).map((t) => ({ label: t.label, count: t.minutes }))}
-              barName="Minutes"
-              emptyMessage="Not enough data yet."
+              title={t("playsOverTime")}
+              data={(state.data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
+              barName={tCommon("units.minutesLabel")}
+              emptyMessage={tCommon("notEnoughData")}
             />
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import DateRangePicker, { formatDisplay, parseISODate } from "./DateRangePicker";
 
 export type RangePreset = "today" | "week" | "fourWeeks" | "sixMonths" | "year" | "lifetime" | "custom";
@@ -50,6 +51,8 @@ export default function RangeSelector({
   customEnd: string;
   onCustomChange: (start: string, end: string) => void;
 }) {
+  const t = useTranslations("common.rangeSelector");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"list" | "calendar">("list");
   const [anchor, setAnchor] = useState<"left" | "right">("left");
@@ -57,13 +60,13 @@ export default function RangeSelector({
 
   const currentYear = new Date().getFullYear();
   const PRESETS: { value: RangePreset; label: string }[] = [
-    { value: "today", label: "Today" },
-    { value: "week", label: "This Week" },
-    { value: "fourWeeks", label: "4 Weeks" },
-    { value: "sixMonths", label: "6 Months" },
+    { value: "today", label: t("today") },
+    { value: "week", label: t("thisWeek") },
+    { value: "fourWeeks", label: t("fourWeeks") },
+    { value: "sixMonths", label: t("sixMonths") },
     { value: "year", label: String(currentYear) },
-    { value: "lifetime", label: "Lifetime" },
-    { value: "custom", label: "Custom" },
+    { value: "lifetime", label: t("lifetime") },
+    { value: "custom", label: t("custom") },
   ];
 
   useEffect(() => {
@@ -117,8 +120,8 @@ export default function RangeSelector({
   const triggerLabel =
     preset === "custom"
       ? customRangeStart && customRangeEnd
-        ? `${formatDisplay(customRangeStart)} – ${formatDisplay(customRangeEnd)}`
-        : "Custom"
+        ? `${formatDisplay(customRangeStart, locale)} – ${formatDisplay(customRangeEnd, locale)}`
+        : t("custom")
       : (PRESETS.find((p) => p.value === preset)?.label ?? "");
 
   return (
@@ -175,7 +178,7 @@ export default function RangeSelector({
                 onClick={() => setView("list")}
                 className="mb-2 flex items-center gap-1 text-xs text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-primary)]"
               >
-                ‹ All ranges
+                {t("allRanges")}
               </button>
               <DateRangePicker
                 startDate={customStart}

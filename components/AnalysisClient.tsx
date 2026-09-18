@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { Granularity, SessionSummary, StreakSummary, TrendBucket } from "@/lib/deepAnalysis";
 import type { AnomalyDay, ComparisonResult, CorrelationPair, RegressionResult } from "@/lib/statisticalAnalysis";
 import StatCard from "./StatCard";
 import HistogramChart from "./HistogramChart";
 import InfoTooltip from "./InfoTooltip";
+import Header from "./Header";
+import { Link } from "@/i18n/navigation";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
 
 interface AnalysisData {
@@ -31,16 +34,17 @@ type LoadState =
   | { status: "error"; message: string }
   | { status: "ready"; data: AnalysisData };
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return "";
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-}
-
-function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function AnalysisClient() {
+  const t = useTranslations("analysis");
+  const tCommon = useTranslations("common");
+  const tFormulas = useTranslations("formulas.analysis");
+  const locale = useLocale();
+
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [preset, setPreset] = useState<RangePreset>("lifetime");
   const [customStart, setCustomStart] = useState("");
@@ -89,51 +93,13 @@ export default function AnalysisClient() {
 
   return (
     <div className="min-h-screen">
-      <header className="glass-pill sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">Sonalytics</h1>
-        <div className="flex items-center gap-4">
-          <a
-            href="/history"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Home
-          </a>
-          <a
-            href="/insights"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Insights
-          </a>
-          <a
-            href="/reports"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Reports
-          </a>
-          <a
-            href="/import"
-            className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            Import
-          </a>
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="submit"
-              className="text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              Disconnect
-            </button>
-          </form>
-        </div>
-      </header>
+      <Header active="analysis" />
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">Deep Analysis</h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              Sessions, streaks, and behavioral trends across your listening history.
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t("title")}</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">{t("subtitle")}</p>
           </div>
           {!(state.status === "ready" && state.data.empty) && (
             <RangeSelector
@@ -150,33 +116,29 @@ export default function AnalysisClient() {
         </div>
 
         {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">
-            Crunching your listening history…
-          </div>
+          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
         )}
 
         {state.status === "error" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            Couldn&apos;t load analysis: {state.message}
+            {t("loadError", { message: state.message })}
           </div>
         )}
 
         {state.status === "ready" && state.data.empty && (
           <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">No imported history yet.</p>
-            <a
+            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
+            <Link
               href="/import"
               className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
-              Import your data
-            </a>
+              {tCommon("importCta")}
+            </Link>
           </div>
         )}
 
         {state.status === "ready" && !state.data.empty && state.data.emptyRange && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            No plays in this time range.
-          </div>
+          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">{tCommon("noPlaysInRange")}</div>
         )}
 
         {state.status === "ready" &&
@@ -197,89 +159,92 @@ export default function AnalysisClient() {
               quietDays = [],
               granularity = "month",
             } = state.data;
-            const periodLabel = granularity === "hour" ? "Hour" : granularity === "day" ? "Day" : "Month";
-            const periodAdj = granularity === "hour" ? "hourly" : granularity === "day" ? "daily" : "monthly";
+            const periodKey: "hour" | "day" | "month" =
+              granularity === "hour" ? "hour" : granularity === "day" ? "day" : "month";
+            const periodLabel = t(`period.${periodKey}`);
+            const periodPlural = t(`periodPlural.${periodKey}`);
+            const periodAdj = t(`periodAdj.${periodKey}`);
             return (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                   <StatCard
-                    label="Longest Streak"
-                    value={plural(streaks.longest, "day")}
+                    label={t("longestStreak")}
+                    value={tCommon("units.days", { count: streaks.longest })}
                     hint={
                       streaks.longestStart
-                        ? `${formatDate(streaks.longestStart)} – ${formatDate(streaks.longestEnd)}`
+                        ? `${formatDate(streaks.longestStart, locale)} – ${formatDate(streaks.longestEnd, locale)}`
                         : undefined
                     }
-                    formula="Longest run of consecutive calendar days (your local time) with at least one play, across your full history."
+                    formula={tFormulas("longestStreak")}
                   />
                   <StatCard
-                    label="Current Streak"
-                    value={plural(streaks.current, "day")}
-                    formula="Run of consecutive calendar days with a play, ending on the most recent day present in your data (not necessarily today)."
+                    label={t("currentStreak")}
+                    value={tCommon("units.days", { count: streaks.current })}
+                    formula={tFormulas("currentStreak")}
                   />
                   <StatCard
-                    label="Total Sessions"
+                    label={t("totalSessions")}
                     value={sessions.totalSessions.toLocaleString()}
-                    formula="A new session starts whenever the gap since the previous play ended exceeds 30 minutes; consecutive plays within that gap merge into one session."
+                    formula={tFormulas("totalSessions")}
                   />
                   <StatCard
-                    label="Avg. Session"
-                    value={`${sessions.avgMinutes} min`}
-                    hint={`${sessions.avgTracks} tracks avg`}
-                    formula="Mean session duration and track count across every session in the selected range (session = a run of plays with no gap over 30 minutes)."
+                    label={t("avgSession")}
+                    value={tCommon("units.minutes", { count: sessions.avgMinutes })}
+                    hint={t("avgSessionHint", { count: sessions.avgTracks })}
+                    formula={tFormulas("avgSession")}
                   />
                   <StatCard
-                    label="Skip Rate"
+                    label={t("skipRate")}
                     value={`${skipRateOverall}%`}
-                    hint="Share of plays skipped early"
-                    formula="percent = (plays where Spotify's own export marks skipped: true ÷ total plays) × 100."
+                    hint={tCommon("shareOfSkippedEarly")}
+                    formula={tFormulas("skipRate")}
                   />
                   <StatCard
-                    label="Distinct Artists"
+                    label={t("distinctArtists")}
                     value={distinctArtists.toLocaleString()}
-                    formula="Count of distinct artist names across all plays in the selected range."
+                    formula={tFormulas("distinctArtists")}
                   />
                 </div>
 
                 <HistogramChart
-                  title={`Sessions per ${periodLabel}`}
-                  subtitle="A session is a run of plays with no gap over 30 minutes."
-                  formula="Sessions are built by sorting all plays chronologically and starting a new one whenever the gap since the previous play ended exceeds 30 minutes; each bar counts sessions whose start falls in that period."
+                  title={t("sessionsPer", { period: periodLabel })}
+                  subtitle={t("sessionsSubtitle")}
+                  formula={tFormulas("sessionsPer")}
                   data={sessions.trend.map((b) => ({ label: b.label, count: b.value }))}
-                  barName="Sessions"
-                  emptyMessage="Not enough data yet."
+                  barName={t("sessionsBarName")}
+                  emptyMessage={tCommon("notEnoughData")}
                 />
 
                 <HistogramChart
-                  title="Skip Rate Over Time"
-                  subtitle={`Share of plays skipped early, by ${granularity}.`}
-                  formula="percent = (plays marked skipped ÷ total plays) × 100, computed separately within each period."
+                  title={t("skipRateOverTime")}
+                  subtitle={t("skipRateSubtitle", { periodAdj })}
+                  formula={tFormulas("skipRateOverTime")}
                   data={(state.data.skipRateTrend ?? []).map((b) => ({ label: b.label, count: b.value }))}
-                  barName="Skip %"
-                  emptyMessage="Not enough data yet."
+                  barName={t("skipRateBarName")}
+                  emptyMessage={tCommon("notEnoughData")}
                 />
 
                 <HistogramChart
-                  title="Taste Diversity Over Time"
-                  subtitle={`0-100 score from your ${periodAdj} artist mix — low means a few artists dominated, high means it was spread evenly.`}
-                  formula="Normalized Shannon entropy of each period's artist play-share, scaled 0-100: score = 100 × (−Σ p·log₂(p) ÷ log₂(N)), where p is an artist's share of that period's plays and N is the number of distinct artists played that period."
+                  title={t("diversityOverTime")}
+                  subtitle={t("diversitySubtitle", { periodAdj })}
+                  formula={tFormulas("diversityOverTime")}
                   data={(state.data.diversityTrend ?? []).map((b) => ({ label: b.label, count: b.value }))}
-                  barName="Diversity"
-                  emptyMessage="Not enough data yet."
+                  barName={t("diversityBarName")}
+                  emptyMessage={tCommon("notEnoughData")}
                 />
 
                 <HistogramChart
-                  title={`New Artists Discovered per ${periodLabel}`}
-                  subtitle="Counted against the day each artist first appears anywhere in your history."
-                  formula="Each artist's first-ever play (found across your FULL history, not just the selected range) is bucketed by period; a period's bar is the count of artists whose first play falls there."
+                  title={t("newArtistsPer", { period: periodLabel })}
+                  subtitle={t("newArtistsSubtitle")}
+                  formula={tFormulas("newArtistsPer")}
                   data={(state.data.discoveryVelocity ?? []).map((b) => ({ label: b.label, count: b.value }))}
-                  barName="New Artists"
-                  emptyMessage="Not enough data yet."
+                  barName={t("newArtistsBarName")}
+                  emptyMessage={tCommon("notEnoughData")}
                 />
 
                 <div className="pt-2">
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
-                    Statistical Highlights
+                    {t("statisticalHighlights")}
                   </h2>
                 </div>
 
@@ -288,26 +253,53 @@ export default function AnalysisClient() {
                     {trend && (
                       <div className="glass-card p-5">
                         <h3 className="mb-2 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-                          Listening Trend
-                          <InfoTooltip text="Least-squares linear regression of total minutes per period against the period index: slope = Σ(dx·dy) ÷ Σ(dx²). R² (= Pearson r²) measures fit quality, 0-1. Direction is 'flat' when |slope| is under 2% of the average minutes per period — otherwise up/down." />
+                          {t("listeningTrend")}
+                          <InfoTooltip text={tFormulas("listeningTrend")} />
                         </h3>
                         <p className="text-2xl font-bold text-[var(--text-primary)]">
-                          {trend.direction === "up" ? "↑ Trending Up" : trend.direction === "down" ? "↓ Trending Down" : "→ Flat"}
+                          {trend.direction === "up" ? t("trendUp") : trend.direction === "down" ? t("trendDown") : t("trendFlat")}
                         </p>
-                        <p className="mt-1 text-sm text-[var(--text-secondary)]">{trend.interpretation}</p>
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                          {!trend.sufficientData
+                            ? t("trendInterpretation.notEnough", { periodPlural })
+                            : trend.direction === "flat"
+                              ? t("trendInterpretation.flat", { count: trend.periodsAnalyzed, periodPlural, r2: trend.r2.toFixed(2) })
+                              : t("trendInterpretation.trending", {
+                                  direction: trend.direction,
+                                  slope: Math.round(Math.abs(trend.slopePerPeriod)),
+                                  periodUnit: periodLabel.toLowerCase(),
+                                  count: trend.periodsAnalyzed,
+                                  periodPlural,
+                                  r2: trend.r2.toFixed(2),
+                                })}
+                        </p>
                       </div>
                     )}
 
                     {weekdayVsWeekend && (
                       <div className="glass-card p-5">
                         <h3 className="mb-2 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-                          Weekday vs. Weekend
-                          <InfoTooltip text="Welch's t-test on daily total minutes, weekday vs weekend: t = (mean₁ − mean₂) ÷ √(var₁/n₁ + var₂/n₂). The two-tailed p-value comes from the normal approximation to the t-distribution (accurate here since there are usually dozens to hundreds of days per group); significant if p < 0.05." />
+                          {t("weekdayVsWeekend")}
+                          <InfoTooltip text={tFormulas("weekdayVsWeekend")} />
                         </h3>
                         <p className="text-2xl font-bold text-[var(--text-primary)]">
-                          {weekdayVsWeekend.meanWeekday} vs {weekdayVsWeekend.meanWeekend} min/day
+                          {t("weekdayVsWeekendValue", {
+                            weekday: weekdayVsWeekend.meanWeekday,
+                            weekend: weekdayVsWeekend.meanWeekend,
+                          })}
                         </p>
-                        <p className="mt-1 text-sm text-[var(--text-secondary)]">{weekdayVsWeekend.interpretation}</p>
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                          {!weekdayVsWeekend.sufficientData
+                            ? t("weekdayVsWeekendInterpretation.notEnough")
+                            : weekdayVsWeekend.significant
+                              ? t("weekdayVsWeekendInterpretation.significant", {
+                                  higher: weekdayVsWeekend.meanWeekday > weekdayVsWeekend.meanWeekend ? t("weekdays") : t("weekends"),
+                                  pValue: weekdayVsWeekend.pValue.toFixed(3),
+                                })
+                              : t("weekdayVsWeekendInterpretation.notSignificant", {
+                                  pValue: weekdayVsWeekend.pValue.toFixed(3),
+                                })}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -316,30 +308,38 @@ export default function AnalysisClient() {
                 {correlations.length > 0 && (
                   <div className="glass-card p-5">
                     <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-                      Correlation Highlights
-                      <InfoTooltip text="Pearson correlation r = Σ(dx·dy) ÷ √(Σdx² · Σdy²), computed pairwise across four per-period series (Minutes, Skip Rate, Diversity, New Artists), each built from the same aligned, equal-length list of periods." />
+                      {t("correlationHighlights")}
+                      <InfoTooltip text={tFormulas("correlationHighlights")} />
                     </h3>
                     <p className="mb-4 text-xs text-[var(--text-tertiary)]">
-                      Pearson correlation (r) across your {periodAdj} metrics — closer to ±1 means a stronger
-                      relationship.
+                      {t("correlationSubtitle", { periodAdj })}
                     </p>
                     <ul className="space-y-3">
-                      {correlations.map((c) => (
-                        <li
-                          key={`${c.metricA}-${c.metricB}`}
-                          className="flex items-center justify-between gap-4 border-b border-[var(--divider)] pb-3 last:border-0 last:pb-0"
-                        >
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-[var(--text-primary)]">
-                              {c.metricA} × {c.metricB}
+                      {correlations.map((c) => {
+                        const metricA = t(`metrics.${c.metricA}`);
+                        const metricB = t(`metrics.${c.metricB}`);
+                        const direction = c.coefficient > 0 ? t("correlationDirection.together") : t("correlationDirection.opposite");
+                        const interpretation =
+                          c.strength === "unrelated"
+                            ? t("correlationInterpretation.unrelated", { periodAdj })
+                            : t(`correlationInterpretation.${c.strength}`, { metricA, metricB, direction });
+                        return (
+                          <li
+                            key={`${c.metricA}-${c.metricB}`}
+                            className="flex items-center justify-between gap-4 border-b border-[var(--divider)] pb-3 last:border-0 last:pb-0"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-[var(--text-primary)]">
+                                {metricA} × {metricB}
+                              </div>
+                              <div className="text-xs text-[var(--text-tertiary)]">{interpretation}</div>
                             </div>
-                            <div className="text-xs text-[var(--text-tertiary)]">{c.interpretation}</div>
-                          </div>
-                          <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--text-primary)]">
-                            r = {c.coefficient.toFixed(2)}
-                          </span>
-                        </li>
-                      ))}
+                            <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--text-primary)]">
+                              {t("correlationValue", { coefficient: c.coefficient.toFixed(2) })}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -348,21 +348,19 @@ export default function AnalysisClient() {
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div className="glass-card p-5">
                       <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-                        Spike Days
-                        <InfoTooltip text="z-score = (day's total minutes − mean daily minutes) ÷ standard deviation, across every active day in your history. The top 3 days with z > 2 are shown." />
+                        {t("spikeDays")}
+                        <InfoTooltip text={tFormulas("spikeDays")} />
                       </h3>
-                      <p className="mb-4 text-xs text-[var(--text-tertiary)]">
-                        Days well above your typical active day.
-                      </p>
+                      <p className="mb-4 text-xs text-[var(--text-tertiary)]">{t("spikeDaysSubtitle")}</p>
                       {spikeDays.length === 0 ? (
-                        <p className="text-sm text-[var(--text-tertiary)]">None stood out.</p>
+                        <p className="text-sm text-[var(--text-tertiary)]">{t("noneStoodOut")}</p>
                       ) : (
                         <ul className="space-y-2">
                           {spikeDays.map((d) => (
                             <li key={d.date} className="flex items-center justify-between text-sm">
-                              <span className="text-[var(--text-primary)]">{formatDate(d.date)}</span>
+                              <span className="text-[var(--text-primary)]">{formatDate(d.date, locale)}</span>
                               <span className="tabular-nums text-[var(--text-tertiary)]">
-                                {d.minutes} min · {d.zScore.toFixed(1)}σ
+                                {t("dayStat", { minutes: d.minutes, zScore: d.zScore.toFixed(1) })}
                               </span>
                             </li>
                           ))}
@@ -372,21 +370,19 @@ export default function AnalysisClient() {
 
                     <div className="glass-card p-5">
                       <h3 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-                        Quiet Days
-                        <InfoTooltip text="Same z-score as Spike Days (day's minutes − mean ÷ standard deviation), showing the 3 lowest days with z < −2." />
+                        {t("quietDays")}
+                        <InfoTooltip text={tFormulas("quietDays")} />
                       </h3>
-                      <p className="mb-4 text-xs text-[var(--text-tertiary)]">
-                        Active days well below your typical listening.
-                      </p>
+                      <p className="mb-4 text-xs text-[var(--text-tertiary)]">{t("quietDaysSubtitle")}</p>
                       {quietDays.length === 0 ? (
-                        <p className="text-sm text-[var(--text-tertiary)]">None stood out.</p>
+                        <p className="text-sm text-[var(--text-tertiary)]">{t("noneStoodOut")}</p>
                       ) : (
                         <ul className="space-y-2">
                           {quietDays.map((d) => (
                             <li key={d.date} className="flex items-center justify-between text-sm">
-                              <span className="text-[var(--text-primary)]">{formatDate(d.date)}</span>
+                              <span className="text-[var(--text-primary)]">{formatDate(d.date, locale)}</span>
                               <span className="tabular-nums text-[var(--text-tertiary)]">
-                                {d.minutes} min · {d.zScore.toFixed(1)}σ
+                                {t("dayStat", { minutes: d.minutes, zScore: d.zScore.toFixed(1) })}
                               </span>
                             </li>
                           ))}

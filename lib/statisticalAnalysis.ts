@@ -6,7 +6,7 @@ export interface RegressionResult {
   periodUnit: Granularity;
   r2: number;
   direction: "up" | "down" | "flat";
-  interpretation: string;
+  sufficientData: boolean;
   periodsAnalyzed: number;
 }
 
@@ -16,14 +16,17 @@ export interface ComparisonResult {
   percentDiff: number;
   pValue: number;
   significant: boolean;
-  interpretation: string;
+  sufficientData: boolean;
 }
 
+export type MetricId = "minutes" | "skipRate" | "diversity" | "newArtists";
+export type CorrelationStrength = "unrelated" | "weak" | "moderate" | "strong";
+
 export interface CorrelationPair {
-  metricA: string;
-  metricB: string;
+  metricA: MetricId;
+  metricB: MetricId;
   coefficient: number;
-  interpretation: string;
+  strength: CorrelationStrength;
 }
 
 export interface AnomalyDay {
@@ -38,10 +41,6 @@ export interface StatisticalAnalysis {
   correlations: CorrelationPair[];
   spikeDays: AnomalyDay[];
   quietDays: AnomalyDay[];
-}
-
-function periodWordFor(granularity: Granularity): string {
-  return granularity === "hour" ? "hour" : granularity === "day" ? "day" : "month";
 }
 
 function mean(values: number[]): number {
@@ -110,7 +109,6 @@ function linearRegression(ys: number[]): { slope: number; r2: number } {
 /** Least-squares trend on total minutes per period — a real slope + R², not just eyeballing a
  *  chart. Buckets by day or month depending on `granularity`, same as the trend charts. */
 export function computeListeningTrend(rows: AnalysisRow[], granularity: Granularity, tzOffsetMinutes: number): RegressionResult {
-  const periodWord = periodWordFor(granularity);
   const perPeriod = new Map<string, number>();
   for (const row of rows) {
     const key = bucketKey(row.playedAt, granularity, tzOffsetMinutes);
@@ -125,7 +123,7 @@ export function computeListeningTrend(rows: AnalysisRow[], granularity: Granular
       periodUnit: granularity,
       r2: 0,
       direction: "flat",
-      interpretation: `Not enough ${periodWord}s of history yet.`,
+      sufficientData: false,
       periodsAnalyzed: periods.length,
     };
   }
@@ -135,17 +133,12 @@ export function computeListeningTrend(rows: AnalysisRow[], granularity: Granular
   const noiseFloor = Math.max(1, avgMinutes * 0.02);
   const direction: RegressionResult["direction"] = slope > noiseFloor ? "up" : slope < -noiseFloor ? "down" : "flat";
 
-  const interpretation =
-    direction === "flat"
-      ? `Roughly flat over ${periods.length} ${periodWord}s (R²=${r2.toFixed(2)}).`
-      : `Trending ${direction} by about ${Math.round(Math.abs(slope))} min/${periodWord} over ${periods.length} ${periodWord}s (R²=${r2.toFixed(2)}).`;
-
   return {
     slopePerPeriod: Math.round(slope * 10) / 10,
     periodUnit: granularity,
     r2: Math.round(r2 * 100) / 100,
     direction,
-    interpretation,
+    sufficientData: true,
     periodsAnalyzed: periods.length,
   };
 }
@@ -175,7 +168,7 @@ export function computeWeekdayVsWeekend(rows: AnalysisRow[], tzOffsetMinutes: nu
       percentDiff: 0,
       pValue: 1,
       significant: false,
-      interpretation: "Not enough days of history yet.",
+      sufficientData: false,
     };
   }
 
@@ -189,27 +182,20 @@ export function computeWeekdayVsWeekend(rows: AnalysisRow[], tzOffsetMinutes: nu
   const significant = pValue < 0.05;
   const percentDiff = meanWeekend === 0 ? 0 : ((meanWeekday - meanWeekend) / meanWeekend) * 100;
 
-  const higher = meanWeekday > meanWeekend ? "weekdays" : "weekends";
-  const interpretation = significant
-    ? `Statistically significant: you listen more on ${higher} (p=${pValue.toFixed(3)}).`
-    : `No statistically significant difference between weekday and weekend listening (p=${pValue.toFixed(3)}).`;
-
   return {
     meanWeekday: Math.round(meanWeekday),
     meanWeekend: Math.round(meanWeekend),
     percentDiff: Math.round(percentDiff),
     pValue: Math.round(pValue * 1000) / 1000,
     significant,
-    interpretation,
+    sufficientData: true,
   };
 }
 
-function describeCorrelation(coefficient: number, labelA: string, labelB: string, periodWord: string): string {
+export function classifyCorrelationStrength(coefficient: number): CorrelationStrength {
   const strength = Math.abs(coefficient);
-  if (strength < 0.2) return `Essentially unrelated ${periodWord} to ${periodWord}.`;
-  const strengthLabel = strength > 0.6 ? "Strongly" : strength > 0.35 ? "Moderately" : "Weakly";
-  const direction = coefficient > 0 ? "rise and fall together" : "move in opposite directions";
-  return `${strengthLabel} correlated — ${labelA} and ${labelB} tend to ${direction}.`;
+  if (strength < 0.2) return "unrelated";
+  return strength > 0.6 ? "strong" : strength > 0.35 ? "moderate" : "weak";
 }
 
 /** Pairwise correlations across four per-period metrics, bucketed by day or month depending on
@@ -226,7 +212,6 @@ export function computeCorrelations(
   granularity: Granularity,
   tzOffsetMinutes: number
 ): CorrelationPair[] {
-  const periodWord = periodWordFor(granularity);
   const minutesMap = new Map<string, number>();
   const skipMap = new Map<string, { skipped: number; total: number }>();
   const artistsMap = new Map<string, Map<string, number>>();
@@ -278,24 +263,24 @@ export function computeCorrelations(
   });
   const newArtists = periods.map((p) => discoveryMap.get(p) ?? 0);
 
-  const metrics: [string, number[]][] = [
-    ["Minutes", minutes],
-    ["Skip Rate", skipRate],
-    ["Diversity", diversity],
-    ["New Artists", newArtists],
+  const metrics: [MetricId, number[]][] = [
+    ["minutes", minutes],
+    ["skipRate", skipRate],
+    ["diversity", diversity],
+    ["newArtists", newArtists],
   ];
 
   const pairs: CorrelationPair[] = [];
   for (let i = 0; i < metrics.length; i++) {
     for (let j = i + 1; j < metrics.length; j++) {
-      const [labelA, seriesA] = metrics[i];
-      const [labelB, seriesB] = metrics[j];
+      const [metricA, seriesA] = metrics[i];
+      const [metricB, seriesB] = metrics[j];
       const coefficient = Math.round(pearson(seriesA, seriesB) * 100) / 100;
       pairs.push({
-        metricA: labelA,
-        metricB: labelB,
+        metricA,
+        metricB,
         coefficient,
-        interpretation: describeCorrelation(coefficient, labelA, labelB, periodWord),
+        strength: classifyCorrelationStrength(coefficient),
       });
     }
   }

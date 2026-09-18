@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { RankedItem } from "@/lib/historyAnalytics";
 
 interface RankedItemWithImage extends RankedItem {
@@ -34,6 +35,7 @@ export default function TopGrid({
   /** When set, each card links to that item's detail page. */
   linkType?: "track" | "artist";
 }) {
+  const tCommon = useTranslations("common");
   const [page, setPage] = useState(0);
   const imageClass = imageShape === "circle" ? "rounded-full" : "rounded-xl";
 
@@ -59,13 +61,13 @@ export default function TopGrid({
         {items.length > PAGE_SIZE && (
           <div className="flex shrink-0 items-center gap-2">
             <span className="text-xs tabular-nums text-[var(--text-tertiary)]">
-              {start + 1}–{Math.min(start + PAGE_SIZE, items.length)} of {items.length}
+              {tCommon("pageRange", { start: start + 1, end: Math.min(start + PAGE_SIZE, items.length), total: items.length })}
             </span>
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={clampedPage === 0}
-              aria-label="Previous"
+              aria-label={tCommon("previous")}
               className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
             >
               ‹
@@ -74,7 +76,7 @@ export default function TopGrid({
               type="button"
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
               disabled={clampedPage >= pageCount - 1}
-              aria-label="Next"
+              aria-label={tCommon("next")}
               className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
             >
               ›
@@ -84,7 +86,7 @@ export default function TopGrid({
       </div>
 
       {items.length === 0 ? (
-        <p className="px-2 py-4 text-sm text-[var(--text-tertiary)]">Nothing here yet.</p>
+        <p className="px-2 py-4 text-sm text-[var(--text-tertiary)]">{tCommon("nothingHereYet")}</p>
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 md:grid-cols-5">
           {visible.map((item, i) => {
@@ -111,8 +113,8 @@ export default function TopGrid({
                 </div>
                 <div className="truncate text-xs text-[var(--text-tertiary)]">
                   {(() => {
-                    const minutesText = `${Math.round(item.minutes)} min`;
-                    const playsText = `${item.plays} ${item.plays === 1 ? "play" : "plays"}`;
+                    const minutesText = tCommon("units.minutes", { count: Math.round(item.minutes) });
+                    const playsText = tCommon("units.plays", { count: item.plays });
                     const primary = metric === "minutes" ? minutesText : playsText;
                     const secondary = metric === "minutes" ? playsText : minutesText;
                     return `${primary} · ${secondary}${item.subtitle ? ` · ${item.subtitle}` : ""}`;
