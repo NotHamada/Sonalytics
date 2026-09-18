@@ -122,6 +122,7 @@
     "minutesOverTime": "Minutos ao Longo do Tempo",
     "topTracks": "Top Músicas",
     "topArtists": "Top Artistas",
+    "topAlbums": "Top Álbuns",
     "popularityDistribution": "Distribuição de Popularidade",
     "tracksBarName": "Faixas",
     "notEnoughTopTracks": "Ainda não há faixas suficientes para montar uma distribuição.",
@@ -298,6 +299,17 @@
     "skipRate": "Taxa de Pulos",
     "playsOverTime": "Reproduções ao Longo do Tempo",
     "topTracksBy": "Top Músicas de {name}"
+  },
+  "albumDetail": {
+    "loading": "Carregando álbum…",
+    "loadError": "Não foi possível carregar este álbum: {message}",
+    "notFoundInRange": "Este álbum não foi reproduzido nesse período.",
+    "rank": "#{rank} de {total} álbuns",
+    "distinctTracks": "Faixas Distintas",
+    "skipRate": "Taxa de Pulos",
+    "playsOverTime": "Reproduções ao Longo do Tempo",
+    "tracksOn": "Faixas de {name}",
+    "trackCount": "{count, plural, one {# faixa} other {# faixas}}"
   },
   "import": {
     "steps": {

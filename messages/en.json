@@ -122,6 +122,7 @@
     "minutesOverTime": "Minutes Over Time",
     "topTracks": "Top Tracks",
     "topArtists": "Top Artists",
+    "topAlbums": "Top Albums",
     "popularityDistribution": "Popularity Distribution",
     "tracksBarName": "Tracks",
     "notEnoughTopTracks": "Not enough top tracks to build a distribution yet.",
@@ -298,6 +299,17 @@
     "skipRate": "Skip Rate",
     "playsOverTime": "Plays Over Time",
     "topTracksBy": "Top Tracks by {name}"
+  },
+  "albumDetail": {
+    "loading": "Loading album…",
+    "loadError": "Couldn't load this album: {message}",
+    "notFoundInRange": "This album wasn't played in this time range.",
+    "rank": "#{rank} of {total} albums",
+    "distinctTracks": "Distinct Tracks",
+    "skipRate": "Skip Rate",
+    "playsOverTime": "Plays Over Time",
+    "tracksOn": "Tracks on {name}",
+    "trackCount": "{count, plural, one {# track} other {# tracks}}"
   },
   "import": {
     "steps": {

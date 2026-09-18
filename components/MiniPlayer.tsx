@@ -4,17 +4,21 @@
 export default function MiniPlayer({
   trackId,
   artistId,
+  albumId,
   height,
 }: {
   trackId?: string;
   artistId?: string;
+  albumId?: string;
   height?: number;
 }) {
   const src = trackId
     ? `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`
     : artistId
       ? `https://open.spotify.com/embed/artist/${artistId}?utm_source=generator&theme=0`
-      : null;
+      : albumId
+        ? `https://open.spotify.com/embed/album/${albumId}?utm_source=generator&theme=0`
+        : null;
 
   if (!src) return null;
 

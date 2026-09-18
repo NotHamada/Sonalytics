@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidAccessToken } from "@/lib/spotify-auth";
 import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
-import { computeSummary, computeTopArtists, computeTopTracks } from "@/lib/historyAnalytics";
+import { computeSummary, computeTopAlbums, computeTopTracks } from "@/lib/historyAnalytics";
 import { computeEntityStats } from "@/lib/entityStats";
 import {
-  attachArtistImages,
+  attachAlbumImages,
   attachTrackImages,
-  buildRepresentativeTrackUriByArtist,
+  buildRepresentativeTrackUriByAlbum,
   collectTrackIds,
   fetchTrackLookup,
 } from "@/lib/spotifyImages";
@@ -20,7 +20,7 @@ const TOP_N_WITH_METADATA = 100;
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ name: string }> }) {
   // Route params come through still URL-encoded in this Next.js version (not auto-decoded) —
-  // decode before matching against artistName, or names with spaces never match.
+  // decode before matching against albumName, or names with spaces never match.
   const { name: rawName } = await params;
   const name = decodeURIComponent(rawName);
 
@@ -61,6 +61,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       trackUri: true,
       trackName: true,
       artistName: true,
+      albumName: true,
       isPodcast: true,
       isAudiobook: true,
       skipped: true,
@@ -71,58 +72,67 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ empty: false, emptyRange: true });
   }
 
-  const artistRows = rows.filter((r) => r.artistName?.toLowerCase() === name.toLowerCase());
-  if (artistRows.length === 0) {
+  const albumRows = rows.filter((r) => r.albumName?.toLowerCase() === name.toLowerCase());
+  if (albumRows.length === 0) {
     return NextResponse.json({ empty: false, notFound: true });
   }
 
   // Granularity follows the selected range's overall span, same as the Full History trend
-  // chart — not this one artist's own (likely much sparser) play span.
+  // chart — not this one album's own (likely much sparser) play span.
   const summary = computeSummary(rows);
   const spanMs = new Date(summary.latestPlay!).getTime() - new Date(summary.earliestPlay!).getTime();
   const granularity = spanMs <= DAY_GRANULARITY_THRESHOLD_MS ? "day" : "month";
 
-  const artistName = artistRows[0].artistName!;
-  const stats = computeEntityStats(artistRows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes);
+  const albumName = albumRows[0].albumName!;
+  const artistName = albumRows[0].artistName ?? null;
+  const stats = computeEntityStats(albumRows, granularity, Number.isNaN(tzOffsetMinutes) ? 0 : tzOffsetMinutes);
   const distinctTracks = new Set(
-    artistRows
+    albumRows
       .filter((r) => !r.isPodcast && !r.isAudiobook && r.trackName)
       .map((r) => r.trackUri ?? `${r.trackName}|${r.artistName}`)
   ).size;
 
-  const allRankedArtists = computeTopArtists(rows, rows.length);
-  const rankIndex = allRankedArtists.findIndex((a) => a.name.toLowerCase() === artistName.toLowerCase());
+  // Matched on album+artist together (not album name alone) since plenty of albums share a
+  // title across different artists — same reasoning as computeTopAlbums's own grouping key.
+  const allRankedAlbums = computeTopAlbums(rows, rows.length);
+  const rankIndex = allRankedAlbums.findIndex(
+    (a) =>
+      a.name.toLowerCase() === albumName.toLowerCase() &&
+      (a.subtitle ?? "").toLowerCase() === (artistName ?? "").toLowerCase()
+  );
   const rank = rankIndex >= 0 ? rankIndex + 1 : null;
-  const totalRanked = allRankedArtists.length;
+  const totalRanked = allRankedAlbums.length;
 
-  const representativeTrackUriByArtist = buildRepresentativeTrackUriByArtist(artistRows);
-  const topTracksRanked = computeTopTracks(artistRows, TOP_N_WITH_METADATA);
-  const artistRanked = [
-    { name: artistName, subtitle: null, trackUri: null, plays: stats.totalPlays, minutes: stats.totalMinutes },
+  const representativeTrackUriByAlbum = buildRepresentativeTrackUriByAlbum(albumRows);
+  const topTracksRanked = computeTopTracks(albumRows, TOP_N_WITH_METADATA);
+  const albumRanked = [
+    {
+      name: albumName,
+      subtitle: artistName,
+      trackUri: null,
+      plays: stats.totalPlays,
+      minutes: stats.totalMinutes,
+    },
   ];
 
   const trackLookup = await fetchTrackLookup(accessToken, [
     ...collectTrackIds(topTracksRanked),
-    ...collectTrackIds(artistRanked, (a) => representativeTrackUriByArtist.get(a.name)),
+    ...collectTrackIds(albumRanked, (a) => representativeTrackUriByAlbum.get(`${a.name}|${a.subtitle ?? ""}`)),
   ]);
 
   const topTracks = attachTrackImages(topTracksRanked, trackLookup);
-  const [withImage] = await attachArtistImages(
-    accessToken,
-    artistRanked,
-    representativeTrackUriByArtist,
-    trackLookup
-  );
+  const [withImage] = attachAlbumImages(albumRanked, representativeTrackUriByAlbum, trackLookup);
 
   return NextResponse.json({
     empty: false,
     emptyRange: false,
     notFound: false,
-    name: artistName,
+    name: albumName,
+    artistName,
     image: withImage.image,
-    genres: withImage.genres,
-    followers: withImage.followers,
     spotifyId: withImage.spotifyId,
+    totalTracks: withImage.totalTracks,
+    releaseDate: withImage.releaseDate,
     rank,
     totalRanked,
     distinctTracks,

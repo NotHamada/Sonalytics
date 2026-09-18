@@ -24,6 +24,7 @@ interface HistoryData {
   summary?: HistorySummary;
   topTracks?: RankedItemWithImage[];
   topArtists?: RankedItemWithImage[];
+  topAlbums?: RankedItemWithImage[];
   trend?: TrendPoint[];
 }
 
@@ -277,6 +278,7 @@ export default function HistoryClient() {
                     imageShape="circle"
                     linkType="artist"
                   />
+                  <TopGrid title={t("topAlbums")} items={history.data.topAlbums ?? []} linkType="album" />
                 </div>
               </div>
             )}

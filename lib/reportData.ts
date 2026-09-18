@@ -1,6 +1,12 @@
 import { prisma } from "./db";
 import { computeSummary, computeTopArtists, computeTopTracks } from "./historyAnalytics";
-import { attachArtistImages, attachTrackImages, buildRepresentativeTrackUriByArtist } from "./spotifyImages";
+import {
+  attachArtistImages,
+  attachTrackImages,
+  buildRepresentativeTrackUriByArtist,
+  collectTrackIds,
+  fetchTrackLookup,
+} from "./spotifyImages";
 import type { RankedItemWithImage } from "./spotifyImages";
 import {
   computeTopGenres,
@@ -90,11 +96,21 @@ export async function getPeriodReport(
 
   const summary = computeSummary(rows);
   const representativeTrackUriByArtist = buildRepresentativeTrackUriByArtist(rows);
+  const topArtistsRanked = computeTopArtists(rows, TOP_N);
+  const topTracksRanked = computeTopTracks(rows, TOP_N);
 
-  const [topArtists, topTracks] = await Promise.all([
-    attachArtistImages(accessToken, computeTopArtists(rows, TOP_N), representativeTrackUriByArtist),
-    attachTrackImages(accessToken, computeTopTracks(rows, TOP_N)),
+  const trackLookup = await fetchTrackLookup(accessToken, [
+    ...collectTrackIds(topTracksRanked),
+    ...collectTrackIds(topArtistsRanked, (a) => representativeTrackUriByArtist.get(a.name)),
   ]);
+
+  const topTracks = attachTrackImages(topTracksRanked, trackLookup);
+  const topArtists = await attachArtistImages(
+    accessToken,
+    topArtistsRanked,
+    representativeTrackUriByArtist,
+    trackLookup
+  );
 
   const topGenres = computeTopGenres(topArtists);
 
