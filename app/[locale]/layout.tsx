@@ -26,7 +26,10 @@ export const metadata: Metadata = {
 // Spotify's redirect_uri (and our OAuth state cookie) is pinned to 127.0.0.1 for local dev,
 // since Spotify requires an exact match and won't accept `localhost`. If the browser reaches
 // this app via `localhost` instead, the cookie set there won't be sent back on the 127.0.0.1
-// callback request, breaking the OAuth state check. Bounce to 127.0.0.1 before anything loads.
+// callback request, breaking the OAuth state check. Bounce to 127.0.0.1 as soon as possible.
+// `afterInteractive` (not `beforeInteractive`) because this layout remounts on client-side
+// locale switches, and `beforeInteractive`'s special first-load-only injection triggers a
+// React warning ("script tag ... never executed on the client") on any later re-render.
 const CANONICAL_HOST_SCRIPT = `
 if (location.hostname === "localhost") {
   location.replace(location.href.replace("localhost", "127.0.0.1"));
@@ -44,11 +47,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   return (
     <html
       lang={locale}
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {process.env.NODE_ENV !== "production" && (
-          <Script id="canonical-host" strategy="beforeInteractive">
+          <Script id="canonical-host" strategy="afterInteractive">
             {CANONICAL_HOST_SCRIPT}
           </Script>
         )}
