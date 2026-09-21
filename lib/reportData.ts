@@ -18,7 +18,7 @@ import {
 } from "./reportPeriods";
 import type { GenreCount } from "./types";
 
-const TOP_N = 20;
+const TOP_N = 50;
 
 export type PeriodReport =
   | { empty: true }
