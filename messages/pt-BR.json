@@ -58,7 +58,7 @@
     "accessDenied": "Você recusou o acesso, então não há nada para mostrar ainda.",
     "genericError": "Algo deu errado: {error}",
     "connect": "Conectar com o Spotify",
-    "connectHint": "Solicita acesso somente leitura aos seus itens mais ouvidos, histórico recente de reprodução e total de músicas salvas. Nada é modificado na sua conta.",
+    "connectHint": "Solicita acesso somente leitura aos seus itens mais ouvidos, histórico recente de reprodução e total de músicas salvas — além de permissão para criar uma playlist na sua conta, mas somente quando você pedir explicitamente. Nada mais é modificado na sua conta.",
     "whatYoullSee": "O que você vai ver",
     "features": {
       "topArtistsTracks": {
@@ -277,7 +277,15 @@
       "midnight": "Meia-noite",
       "sunset": "Pôr do sol",
       "paper": "Papel"
-    }
+    },
+    "createPlaylist": "Criar Playlist",
+    "creatingPlaylist": "Criando playlist…",
+    "playlistCreated": "Playlist criada — {count, plural, one {# música adicionada} other {# músicas adicionadas}}.",
+    "openInSpotify": "Abrir no Spotify",
+    "reconnectRequired": "Reconecte sua conta do Spotify para permitir a criação de playlists e tente novamente.",
+    "reconnectCta": "Reconectar Spotify",
+    "playlistError": "Não foi possível criar a playlist: {message}",
+    "playlistNoTracksError": "Não há músicas neste período para adicionar."
   },
   "trackDetail": {
     "loading": "Carregando faixa…",
@@ -390,5 +398,9 @@
     "minutesListened": "Minutos Ouvidos",
     "minutesUnit": "{count} minutos",
     "personalSpotifyAnalytics": "Análise Pessoal do Spotify"
+  },
+  "playlist": {
+    "name": "Retrospectiva Sonalytics — {label}",
+    "description": "Suas músicas mais ouvidas de {label}, geradas pelo Sonalytics."
   }
 }
