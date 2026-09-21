@@ -48,3 +48,42 @@ model SpotifyAccount {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
+
+// Shared cache for public, near-static Spotify metadata (album art, popularity, genres, follower
+// counts). The Extended Streaming History export has none of this, so it's otherwise re-resolved
+// live from Spotify on every request. This data is identical for any caller (Spotify's public
+// catalog, not per-user), so one shared table with a TTL-based refresh (see lib/spotifyCache.ts)
+// is correct — not a permanent cache, since images/followers/genres do drift slowly.
+model CachedTrack {
+  id               String   @id // plain Spotify track id, not the "spotify:track:" URI
+  name             String
+  popularity       Int
+  durationMs       Int
+  albumId          String
+  albumName        String
+  // "YYYY" | "YYYY-MM" | "YYYY-MM-DD" depending on Spotify's release_date_precision — kept as a
+  // plain string, never DateTime, so a partial date never fails to parse.
+  albumReleaseDate String
+  albumTotalTracks Int?
+  albumImages      Json // SpotifyImage[]
+  // The track's artist credits ({id,name}[]) — needed to cross-reference an artist's real
+  // Spotify id from a representative track, not just the track's own metadata.
+  artists          Json
+  externalUrl      String?
+  fetchedAt        DateTime @default(now()) @updatedAt
+
+  @@index([fetchedAt])
+}
+
+model CachedArtist {
+  id          String   @id
+  name        String
+  genres      Json // string[]
+  popularity  Int
+  followers   Int
+  images      Json // SpotifyImage[]
+  externalUrl String?
+  fetchedAt   DateTime @default(now()) @updatedAt
+
+  @@index([fetchedAt])
+}

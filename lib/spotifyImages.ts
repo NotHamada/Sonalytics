@@ -1,4 +1,4 @@
-import { getArtistsByIds, getTracksByIds } from "./spotify-api";
+import { getCachedArtists, getCachedTracks } from "./spotifyCache";
 import type { SpotifyTrack } from "./types";
 import type { RankedItem } from "./historyAnalytics";
 
@@ -29,7 +29,7 @@ export async function fetchTrackLookup(accessToken: string, ids: string[]): Prom
   const unique = Array.from(new Set(ids));
   if (unique.length === 0) return new Map();
   try {
-    const tracks = await getTracksByIds(accessToken, unique);
+    const tracks = await getCachedTracks(accessToken, unique);
     return new Map(tracks.map((t) => [t.id, t]));
   } catch {
     return new Map();
@@ -93,7 +93,7 @@ export async function attachArtistImages(
   let detailsById = new Map<string, { image: string | null; genres: string[]; followers: number | null }>();
   try {
     const resolvedIds = Array.from(new Set(artistIdByName.values()));
-    const fetchedArtists = await getArtistsByIds(accessToken, resolvedIds);
+    const fetchedArtists = await getCachedArtists(accessToken, resolvedIds);
     // Spotify orders images largest-first; [0] is the highest resolution available.
     detailsById = new Map(
       fetchedArtists.map((a) => [
