@@ -13,13 +13,30 @@ export class SpotifyApiError extends Error {
 
 const MAX_RETRIES = 4;
 
-/** Calls the Spotify Web API, retrying on 429 with exponential backoff honoring Retry-After. */
-async function spotifyFetch<T>(path: string, accessToken: string): Promise<T> {
+interface SpotifyFetchOptions {
+  method?: "GET" | "POST";
+  body?: unknown;
+}
+
+/** Calls the Spotify Web API, retrying on 429 with exponential backoff honoring Retry-After.
+ *  Defaults to a plain GET, so every existing read-only caller is unaffected by the optional
+ *  method/body params added for the playlist-write endpoints. */
+async function spotifyFetch<T>(
+  path: string,
+  accessToken: string,
+  options: SpotifyFetchOptions = {}
+): Promise<T> {
+  const { method = "GET", body } = options;
   let attempt = 0;
 
   while (true) {
     const res = await fetch(`${API_BASE}${path}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       cache: "no-store",
     });
 
@@ -156,4 +173,43 @@ export async function getCurrentUserDisplayName(accessToken: string): Promise<st
 export async function getCurrentUserId(accessToken: string): Promise<string> {
   const data = await spotifyFetch<CurrentUserResponse>("/me", accessToken);
   return data.id;
+}
+
+export interface CreatePlaylistParams {
+  name: string;
+  description?: string;
+  public?: boolean;
+}
+
+interface CreatePlaylistResponse {
+  id: string;
+  external_urls: { spotify: string };
+}
+
+/** Creates a new playlist in the given user's account. `userId` must be the Spotify user id
+ *  from getCurrentUserId, not the display name. Defaults to private — creating/populating a
+ *  *public* playlist needs the separate playlist-modify-public scope, which this app doesn't
+ *  request. Requires the playlist-modify-private scope on the access token. */
+export async function createPlaylist(
+  accessToken: string,
+  userId: string,
+  params: CreatePlaylistParams
+): Promise<{ id: string; url: string }> {
+  const data = await spotifyFetch<CreatePlaylistResponse>(
+    `/users/${encodeURIComponent(userId)}/playlists`,
+    accessToken,
+    { method: "POST", body: { name: params.name, description: params.description, public: params.public ?? false } }
+  );
+  return { id: data.id, url: data.external_urls.spotify };
+}
+
+/** Adds tracks to a playlist. `uris` must be full Spotify URIs ("spotify:track:<id>"), not bare
+ *  ids. Spotify caps this endpoint at 100 URIs per call — every caller today stays well under
+ *  that (see TOP_N in lib/reportData.ts), so no chunking loop is implemented; a future caller
+ *  needing more would have to batch like getTracksByIds/getArtistsByIds already do. */
+export async function addTracksToPlaylist(accessToken: string, playlistId: string, uris: string[]): Promise<void> {
+  await spotifyFetch<{ snapshot_id: string }>(`/playlists/${encodeURIComponent(playlistId)}/tracks`, accessToken, {
+    method: "POST",
+    body: { uris },
+  });
 }

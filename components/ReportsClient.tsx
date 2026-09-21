@@ -35,6 +35,12 @@ type LoadState =
   | { status: "error"; message: string }
   | { status: "ready"; data: ReportData };
 
+type PlaylistState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; url: string; trackCount: number }
+  | { status: "error"; kind: "reconnect" | "generic"; code?: string };
+
 /** Track ids are the last segment of the Spotify URI ("spotify:track:abc123" -> "abc123"). */
 function trackHref(item: RankedItemWithImage): string | null {
   const id = item.trackUri?.split(":").pop();
@@ -81,6 +87,17 @@ export default function ReportsClient() {
   const [granularity, setGranularity] = useState<ReportGranularity>("month");
   const [requestedKey, setRequestedKey] = useState<string | null>(null);
   const [cardStyle, setCardStyle] = useState(DEFAULT_CARD_THEME);
+  const [playlistState, setPlaylistState] = useState<PlaylistState>({ status: "idle" });
+
+  // Don't let a stale success/error banner from a previous period linger after paging to a
+  // different one. Adjusting state during render (rather than in an effect) is React's own
+  // recommended pattern for this: https://react.dev/learn/you-might-not-need-an-effect
+  const [prevPeriodKey, setPrevPeriodKey] = useState(`${granularity}:${requestedKey}`);
+  const periodKey = `${granularity}:${requestedKey}`;
+  if (periodKey !== prevPeriodKey) {
+    setPrevPeriodKey(periodKey);
+    setPlaylistState({ status: "idle" });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -124,6 +141,35 @@ export default function ReportsClient() {
   function changeGranularity(next: ReportGranularity) {
     setGranularity(next);
     setRequestedKey(null);
+  }
+
+  async function handleCreatePlaylist() {
+    if (state.status !== "ready" || state.data.empty || state.data.emptyPeriod || !state.data.key) return;
+    setPlaylistState({ status: "loading" });
+    try {
+      const res = await fetch("/api/reports/playlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ granularity, period: state.data.key, locale }),
+      });
+      if (res.status === 401) {
+        window.location.href = "/";
+        return;
+      }
+      if (res.status === 403) {
+        setPlaylistState({ status: "error", kind: "reconnect" });
+        return;
+      }
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setPlaylistState({ status: "error", kind: "generic", code: body.error });
+        return;
+      }
+      const data = (await res.json()) as { playlistUrl: string; trackCount: number };
+      setPlaylistState({ status: "success", url: data.playlistUrl, trackCount: data.trackCount });
+    } catch (err) {
+      setPlaylistState({ status: "error", kind: "generic", code: err instanceof Error ? err.message : undefined });
+    }
   }
 
   return (
@@ -269,6 +315,49 @@ export default function ReportsClient() {
               >
                 {t("downloadCard")}
               </a>
+
+              <button
+                type="button"
+                onClick={handleCreatePlaylist}
+                disabled={playlistState.status === "loading"}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--accent)] px-6 py-3 text-sm font-semibold text-[var(--accent)] transition-transform hover:scale-[1.03] disabled:pointer-events-none disabled:opacity-60"
+              >
+                {playlistState.status === "loading" ? t("creatingPlaylist") : t("createPlaylist")}
+              </button>
+
+              {playlistState.status === "success" && (
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {t("playlistCreated", { count: playlistState.trackCount })}{" "}
+                  <a
+                    href={playlistState.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-[var(--accent)] underline"
+                  >
+                    {t("openInSpotify")}
+                  </a>
+                </p>
+              )}
+
+              {playlistState.status === "error" && playlistState.kind === "reconnect" && (
+                <p className="text-xs text-red-500 dark:text-red-300">
+                  {t("reconnectRequired")}{" "}
+                  <a
+                    href={`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`}
+                    className="font-semibold underline"
+                  >
+                    {t("reconnectCta")}
+                  </a>
+                </p>
+              )}
+
+              {playlistState.status === "error" && playlistState.kind === "generic" && (
+                <p className="text-xs text-red-500 dark:text-red-300">
+                  {playlistState.code === "no_tracks"
+                    ? t("playlistNoTracksError")
+                    : t("playlistError", { message: playlistState.code ?? "unknown_error" })}
+                </p>
+              )}
             </div>
 
             <TopGrid title={t("topArtists")} items={state.data.topArtists ?? []} linkType="artist" />

@@ -2,8 +2,10 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import {
   COOKIE_OAUTH_STATE,
+  COOKIE_RETURN_TO,
   exchangeCodeForTokens,
   getAppOrigin,
+  isSafeReturnPath,
   persistTokens,
 } from "@/lib/spotify-auth";
 import { getCurrentUserId } from "@/lib/spotify-api";
@@ -18,7 +20,9 @@ export async function GET(request: NextRequest) {
 
   const store = await cookies();
   const expectedState = store.get(COOKIE_OAUTH_STATE)?.value;
+  const returnTo = store.get(COOKIE_RETURN_TO)?.value;
   store.delete(COOKIE_OAUTH_STATE);
+  store.delete(COOKIE_RETURN_TO);
 
   if (error) {
     return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(error)}`);
@@ -46,5 +50,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?error=${encodeURIComponent(message)}`);
   }
 
-  return NextResponse.redirect(`${origin}/history`);
+  const destination = returnTo && isSafeReturnPath(returnTo) ? returnTo : "/history";
+  return NextResponse.redirect(`${origin}${destination}`);
 }
