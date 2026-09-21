@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { syncRecentPlays } from "@/lib/syncRecentPlays";
 import { computeSummary, computeTopTracks } from "@/lib/historyAnalytics";
 import { computeEntityStats } from "@/lib/entityStats";
-import { getTracksByIds } from "@/lib/spotify-api";
+import { getCachedTracks } from "@/lib/spotifyCache";
 
 const DAY_GRANULARITY_THRESHOLD_MS = 31 * 24 * 60 * 60 * 1000;
 
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   let durationMs: number | null = null;
   let albumName: string | null = null;
   try {
-    const [track] = await getTracksByIds(accessToken, [id]);
+    const [track] = await getCachedTracks(accessToken, [id]);
     if (track) {
       image = track.album.images[0]?.url ?? null;
       popularity = track.popularity;
