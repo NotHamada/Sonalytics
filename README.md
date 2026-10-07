@@ -1,5 +1,7 @@
 # Sonalytics
 
+Architecture: https://gitdiagram.com/nothamada/sonalytics
+
 A personal Spotify listening analytics application. Sonalytics connects to your Spotify account
 (read-only) and combines your full historical play data with live data from the Spotify Web API
 to produce a deep, statistically-grounded picture of your listening habits — full-history search,
