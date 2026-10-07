@@ -13,8 +13,47 @@ interface FileResult {
 type UploadState =
   | { status: "idle" }
   | { status: "uploading" }
-  | { status: "done"; totalParsed: number; totalInserted: number; files: FileResult[] }
-  | { status: "error"; message: string };
+  | { status: "done"; totalParsed: number; totalInserted: number; files: FileResult[] };
+
+// ~500 bytes per raw entry, so a chunk stays around 1 MB — well under Vercel's 4.5 MB body limit.
+const CHUNK_SIZE = 2000;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+}
+
+async function uploadFile(file: File): Promise<{ parsed: number; inserted: number }> {
+  let json: unknown;
+  try {
+    json = JSON.parse(await file.text());
+  } catch {
+    throw new Error(`${file.name} isn't valid JSON.`);
+  }
+
+  // A non-array is sent as-is so the server's parser reports its usual "doesn't look like a
+  // Spotify streaming history file" error.
+  const chunks = Array.isArray(json) ? chunk(json, CHUNK_SIZE) : [json];
+
+  let parsed = 0;
+  let inserted = 0;
+  for (const entries of chunks) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileName: file.name, entries }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Import failed (${res.status})`);
+    }
+    const data = (await res.json()) as { parsed: number; inserted: number };
+    parsed += data.parsed;
+    inserted += data.inserted;
+  }
+  return { parsed, inserted };
+}
 
 export default function ImportClient() {
   const t = useTranslations("import");
@@ -26,23 +65,26 @@ export default function ImportClient() {
     const files = Array.from(fileList);
     setState({ status: "uploading" });
 
-    const formData = new FormData();
-    for (const file of files) formData.append("files", file);
+    let totalParsed = 0;
+    let totalInserted = 0;
+    const results: FileResult[] = [];
 
-    try {
-      const res = await fetch("/api/import", { method: "POST", body: formData });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Import failed (${res.status})`);
+    for (const file of files) {
+      try {
+        const { parsed, inserted } = await uploadFile(file);
+        totalParsed += parsed;
+        totalInserted += inserted;
+        results.push({ name: file.name, parsed });
+      } catch (err) {
+        results.push({
+          name: file.name,
+          parsed: 0,
+          error: err instanceof Error ? err.message : "Something went wrong.",
+        });
       }
-      const data = (await res.json()) as { totalParsed: number; totalInserted: number; files: FileResult[] };
-      setState({ status: "done", ...data });
-    } catch (err) {
-      setState({
-        status: "error",
-        message: err instanceof Error ? err.message : "Something went wrong.",
-      });
     }
+
+    setState({ status: "done", totalParsed, totalInserted, files: results });
   }
 
   return (
@@ -66,12 +108,6 @@ export default function ImportClient() {
 
       {state.status === "uploading" && (
         <p className="mt-4 text-sm text-[var(--text-secondary)]">{t("importing")}</p>
-      )}
-
-      {state.status === "error" && (
-        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-          {state.message}
-        </div>
       )}
 
       {state.status === "done" && (

@@ -94,8 +94,10 @@ time, and an embedded Spotify player — reached by clicking through from Histor
 Analysis, or Reports.
 
 ### Import (`/import`)
-Uploads and parses Spotify's **Extended Streaming History** export (`Streaming_History_Audio_*.json`
-and `Streaming_History_Video_*.json`) directly in the browser, then bulk-inserts every play event
+Uploads Spotify's **Extended Streaming History** export (`Streaming_History_Audio_*.json` and
+`Streaming_History_Video_*.json`) — each file is read in the browser and sent to `/api/import` in
+2,000-entry chunks (Vercel rejects request bodies over 4.5 MB, which a single export file exceeds) —
+then bulk-inserts every play event
 into Postgres (batched `createMany` with `skipDuplicates`, deduped on a `dedupeKey` + `playedAt`
 composite so re-uploading the same export is always safe). This is what unlocks real multi-year
 history — the live Spotify API only ever exposes your last 50 plays.
