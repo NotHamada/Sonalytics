@@ -35,6 +35,7 @@ flow with tokens kept server-side in `httpOnly` cookies — nothing touches the 
 - [Deploying](#deploying)
 - [Known limitations](#known-limitations)
 - [Privacy](#privacy)
+- [License](#license)
 
 ---
 
@@ -448,3 +449,10 @@ Reports playlist generator. Access and refresh tokens are stored in `httpOnly` c
 exposed to client-side JavaScript) and, for the cron sync job only, in your own database. Your
 listening history lives in your own Postgres database — nothing is sent to any third party beyond
 the Spotify Web API itself.
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE). Spotify is a trademark of Spotify AB; this project is
+not affiliated with or endorsed by Spotify.
