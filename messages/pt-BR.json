@@ -21,10 +21,10 @@
     "next": "Próximo",
     "pageRange": "{start}–{end} de {total}",
     "shareOfSkippedEarly": "Parcela de reproduções puladas cedo",
-    "backToFullHistory": "‹ Voltar ao Histórico Completo",
+    "backToFullHistory": "Voltar ao histórico completo",
     "stats": {
-      "totalPlays": "Total de Reproduções",
-      "totalMinutes": "Total de Minutos",
+      "totalPlays": "Total de reproduções",
+      "totalMinutes": "Total de minutos",
       "since": "Desde",
       "through": "Até"
     },
@@ -38,12 +38,13 @@
     "footer": "Dados fornecidos pelo Spotify. Este app não é afiliado nem endossado pelo Spotify.",
     "rangeSelector": {
       "today": "Hoje",
-      "thisWeek": "Esta Semana",
-      "fourWeeks": "4 Semanas",
-      "sixMonths": "6 Meses",
-      "lifetime": "Todo o Período",
+      "thisWeek": "Esta semana",
+      "fourWeeks": "4 semanas",
+      "sixMonths": "6 meses",
+      "lifetime": "Todo o período",
       "custom": "Personalizado",
-      "allRanges": "‹ Todos os períodos"
+      "allRanges": "‹ Todos os períodos",
+      "label": "Período"
     },
     "datePicker": {
       "previousMonth": "Mês anterior",
@@ -52,10 +53,15 @@
       "year": "Ano",
       "pickStartDate": "Escolha uma data de início",
       "pickEndDate": "Escolha uma data de término"
+    },
+    "kinds": {
+      "track": "Música",
+      "artist": "Artista",
+      "album": "Álbum"
     }
   },
   "landing": {
-    "eyebrow": "Análise Pessoal do Spotify",
+    "eyebrow": "Análise pessoal do Spotify",
     "title": "Sonalytics",
     "subtitle": "Transforme seu histórico de escuta em uma verdadeira história de dados — tendências de gosto, distribuição de gêneros, índices de diversidade e padrões de descoberta, tudo construído a partir dos seus próprios dados do Spotify.",
     "accessDenied": "Você recusou o acesso, então não há nada para mostrar ainda.",
@@ -65,27 +71,27 @@
     "whatYoullSee": "O que você vai ver",
     "features": {
       "topArtistsTracks": {
-        "title": "Top Artistas e Músicas",
+        "title": "Top artistas e músicas",
         "description": "Rankings das últimas 4 semanas, 6 meses e de todos os tempos — veja como seu gosto muda."
       },
       "genreBreakdown": {
-        "title": "Distribuição de Gêneros",
+        "title": "Distribuição de gêneros",
         "description": "Cada tag de gênero entre seus artistas mais ouvidos, ranqueada pela frequência com que aparece."
       },
       "fullHistory": {
-        "title": "Histórico Completo de Escuta",
+        "title": "Histórico completo de escuta",
         "description": "Importe seu Extended Streaming History para estatísticas reais de vários anos — um calendário de escuta, tendências e qualquer período que você escolher."
       },
       "tasteDiversity": {
-        "title": "Diversidade Musical",
+        "title": "Diversidade musical",
         "description": "Uma pontuação estatística de o quão focado ou eclético seu gosto musical realmente é."
       },
       "discoveryLoyalty": {
-        "title": "Descoberta vs. Fidelidade",
+        "title": "Descoberta vs. fidelidade",
         "description": "O que é novo na sua rotação, o que é essencial e o que está silenciosamente desaparecendo."
       },
       "genrePairings": {
-        "title": "Combinações de Gêneros",
+        "title": "Combinações de gêneros",
         "description": "Quais gêneros mais aparecem juntos no mesmo artista, ranqueados."
       }
     },
@@ -93,23 +99,24 @@
       "readOnly": "Acesso somente leitura",
       "noCache": "Nada é armazenado além da sua sessão",
       "notAffiliated": "Não afiliado nem endossado pelo Spotify"
-    }
+    },
+    "headlineLead": "Sua escuta,",
+    "headlineAccent": "finalmente explicada."
   },
   "history": {
     "loadingDashboard": "Carregando seus dados de escuta…",
     "loadErrorDashboard": "Não foi possível carregar seus dados: {message}",
     "loadingHistory": "Carregando seu histórico importado…",
     "loadErrorHistory": "Não foi possível carregar seu histórico: {message}",
-    "sectionHeading": "Histórico Completo",
-    "savedTracks": "Músicas Salvas",
-    "avgPopularity": "Popularidade Média das Faixas",
+    "savedTracks": "Músicas salvas",
+    "avgPopularity": "Popularidade média das faixas",
     "avgPopularityHint": "{count} faixas amostradas",
-    "deepCuts": "Faixas Obscuras",
+    "deepCuts": "Faixas obscuras",
     "deepCutsHint": "Faixas com popularidade abaixo de 40",
-    "distinctGenres": "Gêneros Distintos",
-    "tasteDiversity": "Diversidade Musical",
+    "distinctGenres": "Gêneros distintos",
+    "tasteDiversity": "Diversidade musical",
     "tasteDiversityHint": "Pontuação de entropia {score}",
-    "eraVsPopularity": "Época vs. Popularidade",
+    "eraVsPopularity": "Época vs. popularidade",
     "diversityLabel": {
       "unknown": "Desconhecido",
       "focused": "Focado",
@@ -122,65 +129,86 @@
       "older": "Você tende a gostar de lançamentos mais antigos ou de nicho em relação à sua época.",
       "neutral": "Nenhuma relação forte entre época de lançamento e popularidade nas suas faixas mais ouvidas."
     },
-    "minutesOverTime": "Minutos ao Longo do Tempo",
-    "topTracks": "Top Músicas",
-    "topArtists": "Top Artistas",
-    "topAlbums": "Top Álbuns",
-    "popularityDistribution": "Distribuição de Popularidade",
+    "minutesOverTime": "Minutos ao longo do tempo",
+    "topTracks": "Top músicas",
+    "topArtists": "Top artistas",
+    "topAlbums": "Top álbuns",
+    "popularityDistribution": "Histograma de popularidade",
     "tracksBarName": "Faixas",
     "notEnoughTopTracks": "Ainda não há faixas suficientes para montar uma distribuição.",
-    "tasteByDecade": "Gosto por Década",
+    "tasteByDecade": "Gosto por década",
     "notEnoughReleaseData": "Ainda não há dados de lançamento suficientes.",
-    "discoveryVsLoyalty": "Descoberta vs. Fidelidade",
+    "discoveryVsLoyalty": "Descoberta vs. fidelidade",
     "cohorts": {
       "artists": "Artistas",
       "tracks": "Músicas"
     },
     "cohortsSubtitle": "Comparando suas listas de topo das últimas 4 semanas, 6 meses e de todos os tempos.",
     "cohortColumns": {
-      "core": { "title": "Núcleo", "hint": "Presente em todas as janelas — seu gosto duradouro" },
-      "discoveries": { "title": "Novas Descobertas", "hint": "Apenas nas últimas 4 semanas" },
-      "fading": { "title": "Perdendo Força", "hint": "Já foi favorito, menos ultimamente" }
+      "core": {
+        "title": "Núcleo",
+        "hint": "Presente em todas as janelas — seu gosto duradouro"
+      },
+      "discoveries": {
+        "title": "Novas descobertas",
+        "hint": "Apenas nas últimas 4 semanas"
+      },
+      "fading": {
+        "title": "Perdendo força",
+        "hint": "Já foi favorito, menos ultimamente"
+      }
     },
-    "genreBreakdown": "Distribuição de Gêneros",
+    "genreBreakdown": "Distribuição de gêneros",
     "notEnoughGenreData": "Ainda não há dados suficientes para determinar gêneros.",
     "artistsBarName": "Artistas",
-    "genrePairings": "Combinações de Gêneros",
+    "genrePairings": "Combinações de gêneros",
     "genrePairingsSubtitle": "Gêneros que mais frequentemente marcam o mesmo artista entre seus top artistas.",
-    "notEnoughGenrePairings": "Ainda não há sobreposição de gêneros suficiente para encontrar combinações."
+    "notEnoughGenrePairings": "Ainda não há sobreposição de gêneros suficiente para encontrar combinações.",
+    "eyebrow": "Histórico",
+    "title": "Histórico completo de escuta",
+    "subtitle": "Tudo o que você ouviu, ranqueado e detalhado.",
+    "quickFacts": "Resumo rápido",
+    "summary": "Resumo",
+    "minutesOverTimeSubtitle": "Minutos ouvidos por período",
+    "popularityDistributionSubtitle": "Faixas por faixa de popularidade do Spotify",
+    "tasteByDecadeSubtitle": "Faixas por década de lançamento"
   },
   "insights": {
-    "title": "Horário do Dia",
-    "subtitle": "Quando você escuta, não só o quê.",
+    "title": "Horário do dia",
+    "subtitle": "Quando você escuta, não só o quê",
     "loading": "Carregando seus padrões de escuta…",
     "loadError": "Não foi possível carregar os insights: {message}",
-    "peakHour": "Horário de Pico",
+    "peakHour": "Horário de pico",
     "peakHourHint": "{minutes} min no total",
-    "peakDay": "Dia de Pico",
+    "peakDay": "Dia de pico",
     "peakDayHint": "{minutes} min no total",
-    "byHour": "Escuta por Horário do Dia",
-    "byWeekday": "Escuta por Dia da Semana",
+    "byHour": "Escuta por horário",
+    "byWeekday": "Escuta por dia da semana",
     "minutesBarName": "Minutos",
-    "heatmapTitle": "Escuta por Horário e Dia",
-    "heatmapSubtitle": "Quando durante a semana você mais escuta — mais claro significa mais minutos.",
-    "dayPartTitle": "Distribuição por Período do Dia",
+    "heatmapTitle": "Mapa de calor semanal",
+    "heatmapSubtitle": "Minutos por dia da semana e hora",
+    "dayPartTitle": "Distribuição por período do dia",
     "dayPartSubtitle": "Parcela do tempo de escuta ao longo do dia.",
     "dayPart": {
       "night": "Madrugada",
       "morning": "Manhã",
       "afternoon": "Tarde",
       "evening": "Noite"
-    }
+    },
+    "eyebrow": "Insights",
+    "byHourSubtitle": "Minutos por hora do dia",
+    "heatmapLess": "Menos",
+    "heatmapMore": "Mais"
   },
   "analysis": {
-    "title": "Análise Profunda",
+    "title": "Análise profunda",
     "subtitle": "Sessões, sequências e tendências de comportamento no seu histórico de escuta.",
     "loading": "Processando seu histórico de escuta…",
     "loadError": "Não foi possível carregar a análise: {message}",
     "period": {
-      "hour": "Hora",
-      "day": "Dia",
-      "month": "Mês"
+      "hour": "hora",
+      "day": "dia",
+      "month": "mês"
     },
     "periodPlural": {
       "hour": "horas",
@@ -192,37 +220,36 @@
       "day": "diário",
       "month": "mensal"
     },
-    "longestStreak": "Maior Sequência",
-    "currentStreak": "Sequência Atual",
-    "totalSessions": "Total de Sessões",
-    "avgSession": "Sessão Média",
+    "longestStreak": "Maior sequência",
+    "currentStreak": "Sequência atual",
+    "totalSessions": "Total de sessões",
+    "avgSession": "Sessão média",
     "avgSessionHint": "{count} faixas em média",
-    "skipRate": "Taxa de Pulos",
-    "distinctArtists": "Artistas Distintos",
+    "skipRate": "Taxa de pulos",
+    "distinctArtists": "Artistas distintos",
     "sessionsPer": "Sessões por {period}",
     "sessionsSubtitle": "Uma sessão é uma sequência de reproduções sem intervalo maior que 30 minutos.",
     "sessionsBarName": "Sessões",
-    "skipRateOverTime": "Taxa de Pulos ao Longo do Tempo",
+    "skipRateOverTime": "Taxa de pulos ao longo do tempo",
     "skipRateSubtitle": "Parcela de reproduções puladas cedo, por {periodAdj}.",
     "skipRateBarName": "% de Pulos",
-    "diversityOverTime": "Diversidade Musical ao Longo do Tempo",
+    "diversityOverTime": "Diversidade musical ao longo do tempo",
     "diversitySubtitle": "Pontuação de 0 a 100 baseada na sua mistura de artistas {periodAdj} — baixo significa que poucos artistas dominaram, alto significa que foi bem distribuído.",
     "diversityBarName": "Diversidade",
-    "newArtistsPer": "Novos Artistas Descobertos por {period}",
+    "newArtistsPer": "Novos artistas por {period}",
     "newArtistsSubtitle": "Contado a partir do dia em que cada artista aparece pela primeira vez em todo o seu histórico.",
-    "newArtistsBarName": "Novos Artistas",
-    "statisticalHighlights": "Destaques Estatísticos",
-    "listeningTrend": "Tendência de Escuta",
-    "trendUp": "↑ Em Alta",
-    "trendDown": "↓ Em Queda",
-    "trendFlat": "→ Estável",
+    "newArtistsBarName": "Novos artistas",
+    "statisticalHighlights": "Destaques estatísticos",
+    "listeningTrend": "Tendência de escuta",
+    "trendUp": "alta",
+    "trendDown": "queda",
+    "trendFlat": "estável",
     "trendInterpretation": {
       "notEnough": "Ainda não há {periodPlural} de histórico suficientes.",
       "flat": "Praticamente estável ao longo de {count} {periodPlural} (R²={r2}).",
       "trending": "{direction, select, up {Em alta} down {Em queda} other {Mudando}}, cerca de {slope} min/{periodUnit} ao longo de {count} {periodPlural} (R²={r2})."
     },
-    "weekdayVsWeekend": "Dias de Semana vs. Fim de Semana",
-    "weekdayVsWeekendValue": "{weekday} vs {weekend} min/dia",
+    "weekdayVsWeekend": "Dias de semana vs. fim de semana",
     "weekdayVsWeekendInterpretation": {
       "notEnough": "Ainda não há dias de histórico suficientes.",
       "significant": "Estatisticamente significativo: você escuta mais {higher} (p={pValue}).",
@@ -230,7 +257,7 @@
     },
     "weekdays": "nos dias de semana",
     "weekends": "nos fins de semana",
-    "correlationHighlights": "Destaques de Correlação",
+    "correlationHighlights": "Correlações entre métricas",
     "correlationSubtitle": "Correlação de Pearson (r) entre suas métricas {periodAdj} — quanto mais próximo de ±1, mais forte a relação.",
     "correlationValue": "r = {coefficient}",
     "correlationInterpretation": {
@@ -245,20 +272,38 @@
     },
     "metrics": {
       "minutes": "Minutos",
-      "skipRate": "Taxa de Pulos",
+      "skipRate": "Taxa de pulos",
       "diversity": "Diversidade",
-      "newArtists": "Novos Artistas"
+      "newArtists": "Novos artistas"
     },
-    "spikeDays": "Dias de Pico",
+    "spikeDays": "Dias de pico",
     "spikeDaysSubtitle": "Dias bem acima da sua atividade típica.",
-    "quietDays": "Dias Tranquilos",
+    "quietDays": "Dias tranquilos",
     "quietDaysSubtitle": "Dias ativos bem abaixo da sua escuta típica.",
     "noneStoodOut": "Nenhum se destacou.",
-    "dayStat": "{minutes} min · {zScore}σ"
+    "dayStat": "{minutes} min · {zScore}σ",
+    "eyebrow": "Análise",
+    "keyStats": "Principais números",
+    "trendUnit": "min / {period}",
+    "significant": "significativo",
+    "notSignificant": "não significativo",
+    "notEnoughBadge": "dados insuficientes",
+    "weekdayMean": "Média em dias de semana",
+    "weekendMean": "Média em fins de semana",
+    "minPerDay": "min/dia",
+    "strength": {
+      "strong": "forte",
+      "moderate": "moderada",
+      "weak": "fraca",
+      "unrelated": "sem relação"
+    },
+    "table": {
+      "date": "Data",
+      "minutes": "Minutos",
+      "z": "z"
+    }
   },
   "reports": {
-    "monthlyWrapped": "Retrospectiva Mensal",
-    "yearlyWrapped": "Retrospectiva Anual",
     "subtitle": "Seus principais artistas, músicas e gêneros — por {granularity}.",
     "granularity": {
       "month": "mês",
@@ -267,13 +312,13 @@
     "loading": "Carregando sua retrospectiva…",
     "loadError": "Não foi possível carregar este relatório: {message}",
     "noPlaysInPeriod": "Nenhuma reprodução em {label}.",
-    "topArtist": "Top Artista",
-    "topTrack": "Top Música",
+    "topArtist": "Top artista",
+    "topTrack": "Top música",
     "shareWrapped": "Compartilhe sua retrospectiva",
-    "shareDescription": "Um cartão compartilhável de {label} — seus principais artistas, músicas e minutos ouvidos.",
-    "downloadCard": "Baixar Cartão",
-    "topArtists": "Top Artistas",
-    "topTracks": "Top Músicas",
+    "shareDescription": "Escolha um estilo e baixe um cartão 9:16 para stories.",
+    "downloadCard": "Baixar cartão",
+    "topArtists": "Top artistas",
+    "topTracks": "Top músicas",
     "prevAriaLabel": "{granularity} anterior",
     "nextAriaLabel": "Próximo {granularity}",
     "themes": {
@@ -281,14 +326,19 @@
       "sunset": "Pôr do sol",
       "paper": "Papel"
     },
-    "createPlaylist": "Criar Playlist",
+    "createPlaylist": "Criar playlist",
     "creatingPlaylist": "Criando playlist…",
     "playlistCreated": "Playlist criada — {count, plural, one {# música adicionada} other {# músicas adicionadas}}.",
     "openInSpotify": "Abrir no Spotify",
     "reconnectRequired": "Reconecte sua conta do Spotify para permitir a criação de playlists e tente novamente.",
     "reconnectCta": "Reconectar Spotify",
     "playlistError": "Não foi possível criar a playlist: {message}",
-    "playlistNoTracksError": "Não há músicas neste período para adicionar."
+    "playlistNoTracksError": "Não há músicas neste período para adicionar.",
+    "eyebrow": "Relatórios",
+    "title": "Sua retrospectiva",
+    "periodType": "Tipo de período do relatório",
+    "cardTheme": "Tema do cartão",
+    "topGenres": "Top gêneros"
   },
   "trackDetail": {
     "loading": "Carregando faixa…",
@@ -296,9 +346,10 @@
     "notFoundInRange": "Esta faixa não foi reproduzida nesse período.",
     "popularity": "Popularidade {score}/100",
     "rank": "#{rank} de {total} faixas",
-    "skipRate": "Taxa de Pulos",
+    "skipRate": "Taxa de pulos",
     "throughDate": "Até {date}",
-    "playsOverTime": "Reproduções ao Longo do Tempo"
+    "playsOverTime": "Reproduções ao longo do tempo",
+    "player": "Player"
   },
   "artistDetail": {
     "loading": "Carregando artista…",
@@ -306,21 +357,23 @@
     "notFoundInRange": "Este artista não foi reproduzido nesse período.",
     "followers": "{count} seguidores",
     "rank": "#{rank} de {total} artistas",
-    "distinctTracks": "Faixas Distintas",
-    "skipRate": "Taxa de Pulos",
-    "playsOverTime": "Reproduções ao Longo do Tempo",
-    "topTracksBy": "Top Músicas de {name}"
+    "distinctTracks": "Faixas distintas",
+    "skipRate": "Taxa de pulos",
+    "playsOverTime": "Reproduções ao longo do tempo",
+    "topTracksBy": "Top músicas de {name}",
+    "player": "Player"
   },
   "albumDetail": {
     "loading": "Carregando álbum…",
     "loadError": "Não foi possível carregar este álbum: {message}",
     "notFoundInRange": "Este álbum não foi reproduzido nesse período.",
     "rank": "#{rank} de {total} álbuns",
-    "distinctTracks": "Faixas Distintas",
-    "skipRate": "Taxa de Pulos",
-    "playsOverTime": "Reproduções ao Longo do Tempo",
+    "distinctTracks": "Faixas distintas",
+    "skipRate": "Taxa de pulos",
+    "playsOverTime": "Reproduções ao longo do tempo",
     "tracksOn": "Faixas de {name}",
-    "trackCount": "{count, plural, one {# faixa} other {# faixas}}"
+    "trackCount": "{count, plural, one {# faixa} other {# faixas}}",
+    "player": "Player"
   },
   "import": {
     "steps": {
@@ -337,19 +390,21 @@
         "description": "Selecione todos os arquivos Streaming_History_Audio/Video_*.json da pasta descompactada."
       }
     },
-    "stepLabel": "Passo {number}",
-    "title": "Importe seu histórico",
-    "subtitle": "A API ao vivo do Spotify só disponibiliza suas últimas 50 reproduções. Importe seu Extended Streaming History para estatísticas reais de vários anos — um calendário de escuta, tendências e qualquer período que você escolher.",
-    "playsImported": "Reproduções Importadas",
+    "title": "Traga seu histórico completo",
+    "subtitle": "A API ao vivo do Spotify só disponibiliza suas últimas 50 reproduções. Importe seu Extended Streaming History para estatísticas reais de vários anos.",
+    "playsImported": "Reproduções importadas",
     "uploadTitle": "Envie seus arquivos",
-    "uploadDescriptionPrefix": "Selecione todos os",
-    "uploadDescriptionMiddle": "e",
-    "uploadDescriptionSuffix": "arquivos da exportação descompactada — mesmo formato, apenas reproduções de áudio ou vídeo.",
     "chooseFiles": "Escolher arquivos",
     "importing": "Importando…",
     "importedSummary": "{inserted} novas reproduções importadas ({parsed} processadas em {files}).",
     "entries": "{count} registros",
-    "viewHistory": "Ver seu histórico →"
+    "viewHistory": "Ver seu histórico →",
+    "eyebrow": "Importar",
+    "dropTitle": "Solte seus arquivos JSON aqui",
+    "dropHint": "ou escolha-os no seu computador",
+    "result": "Resultado da importação",
+    "importedShare": "Proporção importada",
+    "alreadyImported": "{count} registros já estavam no seu histórico e foram ignorados."
   },
   "formulas": {
     "history": {

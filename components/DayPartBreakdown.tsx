@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { HourPoint } from "@/lib/historyAnalytics";
 import { formatHourLabel } from "@/lib/localeFormat";
 import InfoTooltip from "./InfoTooltip";
+import { EmptyState, GlassCard, ProgressBar } from "./sona/primitives";
 
 const PARTS = [
   { key: "night" as const, start: 0, end: 6 },
@@ -29,32 +30,32 @@ export default function DayPartBreakdown({ data }: { data: HourPoint[] }) {
   });
 
   return (
-    <div className="glass-card p-5">
-      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-        {t("dayPartTitle")}
+    <GlassCard as="section" aria-label={t("dayPartTitle")} className="flex flex-col gap-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold tracking-tight">{t("dayPartTitle")}</h3>
+          <p className="mt-0.5 text-xs text-text-tertiary">{t("dayPartSubtitle")}</p>
+        </div>
         <InfoTooltip text={tFormulas("dayPartBreakdown")} />
-      </h2>
-      <p className="mb-4 text-xs text-[var(--text-tertiary)]">{t("dayPartSubtitle")}</p>
+      </div>
 
       {totalMinutes === 0 ? (
-        <p className="text-sm text-[var(--text-tertiary)]">{tCommon("notEnoughData")}</p>
+        <EmptyState title={tCommon("notEnoughData")} />
       ) : (
-        <div className="space-y-3">
+        <ul className="flex flex-col gap-5">
           {parts.map((part) => (
-            <div key={part.key}>
-              <div className="mb-1 flex items-baseline justify-between text-xs">
-                <span className="font-medium text-[var(--text-primary)]">
-                  {t(`dayPart.${part.key}`)} <span className="text-[var(--text-tertiary)]">{part.range}</span>
+            <li key={part.key} className="flex flex-col gap-2">
+              <div className="flex justify-between text-sm">
+                <span>
+                  {t(`dayPart.${part.key}`)} <span className="ml-1 font-mono text-xs text-text-tertiary">{part.range}</span>
                 </span>
-                <span className="tabular-nums text-[var(--text-tertiary)]">{Math.round(part.percent)}%</span>
+                <span className="font-mono">{Math.round(part.percent)}%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--hover)]">
-                <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${part.percent}%` }} />
-              </div>
-            </div>
+              <ProgressBar value={part.percent} label={t(`dayPart.${part.key}`)} />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </GlassCard>
   );
 }

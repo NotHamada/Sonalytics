@@ -1,67 +1,50 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { CohortBreakdown } from "@/lib/types";
+import type { CohortBreakdown, TopEntryDTO } from "@/lib/types";
 import InfoTooltip from "./InfoTooltip";
+import { MiniList } from "./sona/collections";
+import { GlassCard } from "./sona/primitives";
 
-function Column({ title, hint, entries }: { title: string; hint: string; entries: CohortBreakdown["core"] }) {
-  const tCommon = useTranslations("common");
-  return (
-    <div>
-      <div className="mb-2">
-        <div className="text-sm font-semibold text-[var(--text-primary)]">{title}</div>
-        <div className="text-xs text-[var(--text-tertiary)]">{hint}</div>
-      </div>
-      <ul className="space-y-1.5">
-        {entries.map((entry) => (
-          <li key={entry.id}>
-            <a
-              href={entry.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 rounded-lg px-1.5 py-1 transition-colors hover:bg-[var(--hover)]"
-            >
-              {entry.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.image} alt="" className="h-8 w-8 rounded-md object-cover shrink-0" />
-              ) : (
-                <div className="h-8 w-8 rounded-md bg-[var(--hover)] shrink-0" />
-              )}
-              <span className="truncate text-sm text-[var(--text-primary)]">{entry.name}</span>
-            </a>
-          </li>
-        ))}
-        {entries.length === 0 && (
-          <li className="px-1.5 py-2 text-xs text-[var(--text-tertiary)]">{tCommon("noneYet")}</li>
-        )}
-      </ul>
-    </div>
-  );
+function toItems(entries: TopEntryDTO[]) {
+  return entries.map((e) => ({ key: e.id, name: e.name, meta: e.subtitle || undefined, image: e.image, url: e.url }));
 }
 
 export default function CohortBoard({ title, cohorts }: { title: string; cohorts: CohortBreakdown }) {
   const t = useTranslations("history");
+  const tCommon = useTranslations("common");
   const tFormulas = useTranslations("formulas.history");
+  const empty = tCommon("noneYet");
+
   return (
-    <div className="glass-card p-5">
-      <h2 className="mb-1 flex items-center gap-1.5 text-lg font-semibold text-[var(--text-primary)]">
-        {title}
+    <GlassCard className="flex flex-col gap-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold capitalize text-text-secondary">{title}</h3>
         <InfoTooltip text={tFormulas("cohorts")} />
-      </h2>
-      <p className="mb-4 text-xs text-[var(--text-tertiary)]">{t("cohortsSubtitle")}</p>
+      </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <Column title={t("cohortColumns.core.title")} hint={t("cohortColumns.core.hint")} entries={cohorts.core} />
-        <Column
+        <MiniList
+          title={t("cohortColumns.core.title")}
+          hint={t("cohortColumns.core.hint")}
+          items={toItems(cohorts.core)}
+          tone="green"
+          emptyLabel={empty}
+        />
+        <MiniList
           title={t("cohortColumns.discoveries.title")}
           hint={t("cohortColumns.discoveries.hint")}
-          entries={cohorts.discoveries}
+          items={toItems(cohorts.discoveries)}
+          tone="violet"
+          emptyLabel={empty}
         />
-        <Column
+        <MiniList
           title={t("cohortColumns.fading.title")}
           hint={t("cohortColumns.fading.hint")}
-          entries={cohorts.fading}
+          items={toItems(cohorts.fading)}
+          tone="warn"
+          emptyLabel={empty}
         />
       </div>
-    </div>
+    </GlassCard>
   );
 }

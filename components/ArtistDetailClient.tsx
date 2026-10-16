@@ -8,8 +8,10 @@ import StatCard from "./StatCard";
 import MiniPlayer from "./MiniPlayer";
 import TopGrid from "./TopGrid";
 import Header from "./Header";
-import { Link } from "@/i18n/navigation";
-import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import { DetailHero, DetailTopBar, PlayerCard } from "./sona/DetailHero";
+import { PageContainer } from "./sona/primitives";
+import { ErrorNotice, LoadingState, NoHistoryCard, NoPlaysCard } from "./sona/states";
 
 interface RankedItemWithImage extends RankedItem {
   image?: string | null;
@@ -103,127 +105,83 @@ export default function ArtistDetailClient({ name }: { name: string }) {
     };
   }, [name, preset, customStart, customEnd]);
 
+  const data = state.status === "ready" ? state.data : null;
+
+  const meta = data
+    ? [
+        data.followers != null ? t("followers", { count: formatFollowers(data.followers) }) : null,
+        data.genres && data.genres.length > 0 ? data.genres.join(", ") : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+
   return (
     <div className="min-h-screen">
       <Header />
 
-      <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href="/history"
-            className="inline-flex items-center gap-1 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            {tCommon("backToFullHistory")}
-          </Link>
-          {!(state.status === "ready" && state.data.empty) && (
-            <RangeSelector
-              preset={preset}
-              onPresetChange={setPreset}
-              customStart={customStart}
-              customEnd={customEnd}
-              onCustomChange={(start, end) => {
-                setCustomStart(start);
-                setCustomEnd(end);
-              }}
+      <PageContainer>
+        <DetailTopBar
+          showRange={!(data && data.empty)}
+          preset={preset}
+          onPresetChange={setPreset}
+          customStart={customStart}
+          customEnd={customEnd}
+          onCustomChange={(start, end) => {
+            setCustomStart(start);
+            setCustomEnd(end);
+          }}
+        />
+
+        {state.status === "loading" && <LoadingState label={t("loading")} />}
+
+        {state.status === "error" && <ErrorNotice>{t("loadError", { message: state.message })}</ErrorNotice>}
+
+        {data && data.empty && <NoHistoryCard />}
+
+        {data && !data.empty && (data.emptyRange || data.notFound) && (
+          <NoPlaysCard>{data.notFound ? t("notFoundInRange") : tCommon("noPlaysInRange")}</NoPlaysCard>
+        )}
+
+        {data && !data.empty && !data.emptyRange && !data.notFound && (
+          <>
+            <DetailHero
+              kind={tCommon("kinds.artist")}
+              title={data.name ?? ""}
+              image={data.image}
+              circle
+              meta={meta || undefined}
+              rank={data.rank != null ? t("rank", { rank: data.rank, total: data.totalRanked ?? 0 }) : undefined}
             />
-          )}
-        </div>
 
-        {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
-        )}
-
-        {state.status === "error" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            {t("loadError", { message: state.message })}
-          </div>
-        )}
-
-        {state.status === "ready" && state.data.empty && (
-          <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
-            <Link
-              href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-            >
-              {tCommon("importCta")}
-            </Link>
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && (state.data.emptyRange || state.data.notFound) && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            {state.data.notFound ? t("notFoundInRange") : tCommon("noPlaysInRange")}
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && !state.data.emptyRange && !state.data.notFound && (
-          <div className="space-y-6">
-            <div className="glass-card flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:text-left">
-              <div className="h-32 w-32 shrink-0 overflow-hidden rounded-full bg-[var(--hover)]">
-                {state.data.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={state.data.image} alt="" className="h-full w-full object-cover" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
-                {(state.data.followers != null || (state.data.genres && state.data.genres.length > 0)) && (
-                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-                    {[
-                      state.data.followers != null
-                        ? t("followers", { count: formatFollowers(state.data.followers) })
-                        : null,
-                      state.data.genres && state.data.genres.length > 0 ? state.data.genres.join(", ") : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                )}
-                {state.data.rank != null && (
-                  <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-                    {t("rank", { rank: state.data.rank, total: state.data.totalRanked ?? 0 })}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {(state.data.spotifyId || state.data.topTracks?.[0]?.trackUri) && (
-              <div className="glass-card overflow-hidden p-2">
-                {state.data.spotifyId ? (
-                  <MiniPlayer artistId={state.data.spotifyId} />
+            {(data.spotifyId || data.topTracks?.[0]?.trackUri) && (
+              <PlayerCard label={t("player")}>
+                {data.spotifyId ? (
+                  <MiniPlayer artistId={data.spotifyId} />
                 ) : (
-                  <MiniPlayer trackId={state.data.topTracks![0].trackUri!.split(":").pop()} />
+                  <MiniPlayer trackId={data.topTracks![0].trackUri!.split(":").pop()} />
                 )}
-              </div>
+              </PlayerCard>
             )}
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label={tCommon("stats.totalPlays")} value={(state.data.totalPlays ?? 0).toLocaleString()} />
-              <StatCard label={tCommon("stats.totalMinutes")} value={(state.data.totalMinutes ?? 0).toLocaleString()} />
-              <StatCard label={t("distinctTracks")} value={(state.data.distinctTracks ?? 0).toLocaleString()} />
-              <StatCard
-                label={t("skipRate")}
-                value={`${state.data.skipRate ?? 0}%`}
-                hint={tCommon("shareOfSkippedEarly")}
-              />
+            <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
+              <StatCard accent label={tCommon("stats.totalPlays")} value={(data.totalPlays ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalMinutes")} value={(data.totalMinutes ?? 0).toLocaleString()} />
+              <StatCard label={t("distinctTracks")} value={(data.distinctTracks ?? 0).toLocaleString()} />
+              <StatCard label={t("skipRate")} value={`${data.skipRate ?? 0}%`} hint={tCommon("shareOfSkippedEarly")} />
             </div>
 
             <HistogramChart
               title={t("playsOverTime")}
-              data={(state.data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
+              data={(data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
               barName={tCommon("units.minutesLabel")}
               emptyMessage={tCommon("notEnoughData")}
             />
 
-            <TopGrid
-              title={t("topTracksBy", { name: state.data.name ?? "" })}
-              items={state.data.topTracks ?? []}
-              linkType="track"
-            />
-          </div>
+            <TopGrid title={t("topTracksBy", { name: data.name ?? "" })} items={data.topTracks ?? []} linkType="track" />
+          </>
         )}
-      </main>
+      </PageContainer>
     </div>
   );
 }

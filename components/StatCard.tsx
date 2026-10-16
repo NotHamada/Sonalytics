@@ -1,4 +1,6 @@
+import { cn } from "@/lib/cn";
 import InfoTooltip from "./InfoTooltip";
+import { GlassCard } from "./sona/primitives";
 
 export default function StatCard({
   label,
@@ -14,19 +16,15 @@ export default function StatCard({
   accent?: boolean;
 }) {
   return (
-    <div className="glass-card flex min-w-0 flex-col gap-2 px-4 py-4 sm:px-5">
-      <div className="flex items-start justify-between gap-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-        {label}
+    <GlassCard className="flex min-w-0 flex-col gap-2 p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">{label}</p>
         {formula && <InfoTooltip text={formula} />}
       </div>
-      <div
-        className={`break-words font-mono text-2xl font-semibold leading-tight tracking-tight ${
-          accent ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
-        }`}
-      >
+      <p className={cn("break-words font-mono text-2xl font-semibold leading-tight tracking-tight xl:text-[1.6rem]", accent && "text-brand")}>
         {value}
-      </div>
-      {hint && <div className="text-xs text-[var(--text-secondary)]">{hint}</div>}
-    </div>
+      </p>
+      {hint && <p className="text-xs text-text-secondary">{hint}</p>}
+    </GlassCard>
   );
 }

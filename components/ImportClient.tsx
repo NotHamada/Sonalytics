@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { CheckCircle2, FileJson, UploadCloud } from "lucide-react";
+import { useRef, useState, type DragEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/cn";
+import { Badge, GlassCard, PillButton, ProgressBar } from "./sona/primitives";
 
 interface FileResult {
   name: string;
@@ -59,6 +62,8 @@ export default function ImportClient() {
   const t = useTranslations("import");
   const tCommon = useTranslations("common");
   const [state, setState] = useState<UploadState>({ status: "idle" });
+  const [dragging, setDragging] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
 
   async function handleFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -87,61 +92,90 @@ export default function ImportClient() {
     setState({ status: "done", totalParsed, totalInserted, files: results });
   }
 
-  return (
-    <div className="glass-card p-6 text-center">
-      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t("uploadTitle")}</h2>
-      <p className="mx-auto mt-1.5 max-w-md text-sm text-[var(--text-secondary)]">
-        {t("uploadDescriptionPrefix")} <code>Streaming_History_Audio_*.json</code> {t("uploadDescriptionMiddle")}{" "}
-        <code>Streaming_History_Video_*.json</code> {t("uploadDescriptionSuffix")}
-      </p>
+  const uploading = state.status === "uploading";
 
-      <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
-        {t("chooseFiles")}
+  return (
+    <>
+      <GlassCard
+        as="section"
+        aria-label={t("uploadTitle")}
+        onDragOver={(e: DragEvent) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e: DragEvent) => {
+          e.preventDefault();
+          setDragging(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        className={cn("flex flex-col items-center gap-4 border-2 border-dashed py-14 text-center", dragging && "border-brand bg-brand-soft")}
+      >
+        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand">
+          <UploadCloud className="h-7 w-7" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="font-semibold">{t("dropTitle")}</p>
+          <p className="text-sm text-text-tertiary">{t("dropHint")}</p>
+        </div>
         <input
+          ref={input}
           type="file"
           accept=".json"
           multiple
-          className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
+          className="sr-only"
+          tabIndex={-1}
+          aria-label={t("chooseFiles")}
+          onChange={(e) => {
+            handleFiles(e.target.files);
+            e.target.value = "";
+          }}
         />
-      </label>
+        <PillButton onClick={() => input.current?.click()} disabled={uploading}>
+          {uploading ? t("importing") : t("chooseFiles")}
+        </PillButton>
+      </GlassCard>
 
-      {state.status === "uploading" && (
-        <p className="mt-4 text-sm text-[var(--text-secondary)]">{t("importing")}</p>
+      {uploading && (
+        <GlassCard role="status" aria-live="polite">
+          <span className="sr-only">{t("importing")}</span>
+          <div className="skeleton h-24 rounded-xl" />
+        </GlassCard>
       )}
 
       {state.status === "done" && (
-        <div className="mt-4 space-y-2 text-left">
-          <div
-            className="rounded-xl border border-[var(--divider)] px-4 py-3 text-sm text-[var(--text-primary)]"
-            style={{ background: "var(--accent-soft)" }}
-          >
-            {t("importedSummary", {
-              inserted: state.totalInserted.toLocaleString(),
-              parsed: state.totalParsed.toLocaleString(),
-              files: tCommon("units.files", { count: state.files.length }),
-            })}
+        <GlassCard as="section" aria-label={t("result")} className="fade-up flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+            <h2 className="font-semibold">
+              {t("importedSummary", {
+                inserted: state.totalInserted.toLocaleString(),
+                parsed: state.totalParsed.toLocaleString(),
+                files: tCommon("units.files", { count: state.files.length }),
+              })}
+            </h2>
           </div>
-          <ul className="space-y-1 text-xs text-[var(--text-tertiary)]">
+          <ProgressBar
+            value={state.totalParsed > 0 ? Math.round((state.totalInserted / state.totalParsed) * 100) : 0}
+            label={t("importedShare")}
+          />
+          <ul className="flex flex-col">
             {state.files.map((f) => (
-              <li key={f.name}>
-                {f.name}:{" "}
-                {f.error ? (
-                  <span className="text-red-500 dark:text-red-300">{f.error}</span>
-                ) : (
-                  t("entries", { count: f.parsed })
-                )}
+              <li key={f.name} className="flex items-center gap-3 border-t border-divider py-3 first:border-t-0">
+                <FileJson className="h-4 w-4 shrink-0 text-text-tertiary" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate font-mono text-xs sm:text-sm">{f.name}</span>
+                {f.error ? <Badge tone="warn">{f.error}</Badge> : <Badge tone="green">{t("entries", { count: f.parsed })}</Badge>}
               </li>
             ))}
           </ul>
-          <Link
-            href="/history"
-            className="mt-3 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
-          >
+          {state.totalParsed > state.totalInserted && (
+            <p className="text-xs text-text-tertiary">{t("alreadyImported", { count: (state.totalParsed - state.totalInserted).toLocaleString() })}</p>
+          )}
+          <Link href="/history" className="text-sm font-medium text-brand hover:underline">
             {t("viewHistory")}
           </Link>
-        </div>
+        </GlassCard>
       )}
-    </div>
+    </>
   );
 }

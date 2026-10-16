@@ -7,6 +7,7 @@
   --blob-1: #ffb3d1;
   --blob-2: #a9c8ff;
   --blob-3: #b7f5c9;
+  --blob-opacity: 0.6;
 
   --text-primary: #17172a;
   --text-secondary: #52526b;
@@ -32,9 +33,12 @@
   --violet-soft: rgba(106, 76, 255, 0.14);
   --warn: #a35a00;
   --warn-soft: rgba(255, 160, 50, 0.18);
+  --danger: #c4283f;
+  --danger-soft: rgba(214, 51, 79, 0.1);
 
   --chart-grid: rgba(23, 23, 42, 0.1);
   --chart-text: #6e6e88;
+  --heat-0: rgba(23, 23, 42, 0.05);
 }
 
 /* Dark tokens live in two places on purpose: the media query is the no-JS fallback, and
@@ -46,6 +50,7 @@
     --blob-1: #4a1259;
     --blob-2: #0f2f57;
     --blob-3: #0b3b2a;
+    --blob-opacity: 0.55;
 
     --text-primary: #f2f2f9;
     --text-secondary: #aeaec8;
@@ -70,9 +75,12 @@
     --violet-soft: rgba(155, 131, 255, 0.18);
     --warn: #ffb86b;
     --warn-soft: rgba(255, 184, 107, 0.16);
+  --danger: #ff8a9b;
+  --danger-soft: rgba(255, 107, 129, 0.14);
 
     --chart-grid: rgba(255, 255, 255, 0.09);
     --chart-text: #8b8bab;
+    --heat-0: rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -83,6 +91,7 @@
   --blob-1: #4a1259;
   --blob-2: #0f2f57;
   --blob-3: #0b3b2a;
+  --blob-opacity: 0.55;
 
   --text-primary: #f2f2f9;
   --text-secondary: #aeaec8;
@@ -107,9 +116,12 @@
   --violet-soft: rgba(155, 131, 255, 0.18);
   --warn: #ffb86b;
   --warn-soft: rgba(255, 184, 107, 0.16);
+  --danger: #ff8a9b;
+  --danger-soft: rgba(255, 107, 129, 0.14);
 
   --chart-grid: rgba(255, 255, 255, 0.09);
   --chart-text: #8b8bab;
+  --heat-0: rgba(255, 255, 255, 0.04);
 }
 
 :root[data-theme="light"] {
@@ -117,6 +129,10 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-card: 20px;
+
   --color-bg-base: var(--bg-base);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -124,8 +140,20 @@
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
   --color-violet: var(--violet);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-brand: var(--accent);
+  --color-brand-2: var(--accent-2);
+  --color-brand-soft: var(--accent-soft);
+  --color-brand-ink: var(--accent-ink);
+  --color-violet-soft: var(--violet-soft);
+  --color-glass: var(--glass-bg);
+  --color-glass-strong: var(--glass-bg-strong);
+  --color-glass-border: var(--glass-border);
+  --color-divider: var(--divider);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
 }
 
 * {
@@ -181,10 +209,11 @@ body {
   color: var(--text-primary);
   position: relative;
   isolation: isolate;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Ambient blurred color blobs behind the glass UI. Fixed so they don't scroll with content. */
-.bg-mesh {
+.ambient {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -192,80 +221,102 @@ body {
   pointer-events: none;
 }
 
-.bg-mesh::before,
-.bg-mesh::after,
-.bg-mesh .blob-3 {
-  content: "";
+.ambient span {
   position: absolute;
-  border-radius: 50%;
+  border-radius: 9999px;
   filter: blur(110px);
-  opacity: 0.55;
+  opacity: var(--blob-opacity);
 }
 
-.bg-mesh::before {
-  width: 42vw;
-  height: 42vw;
-  top: -12vw;
-  left: -8vw;
-  background: var(--blob-1);
+.ambient .b1 {
+  width: 55vw;
+  height: 55vw;
+  top: -18vw;
+  left: -14vw;
+  background: radial-gradient(circle, var(--blob-1), transparent 70%);
 }
 
-.bg-mesh::after {
-  width: 38vw;
-  height: 38vw;
-  top: 15vh;
-  right: -10vw;
-  background: var(--blob-2);
+.ambient .b2 {
+  width: 50vw;
+  height: 50vw;
+  top: 18vh;
+  right: -16vw;
+  background: radial-gradient(circle, var(--blob-2), transparent 70%);
 }
 
-.bg-mesh .blob-3 {
-  width: 46vw;
-  height: 46vw;
-  bottom: -18vw;
+.ambient .b3 {
+  width: 60vw;
+  height: 45vw;
+  bottom: -22vw;
   left: 18vw;
-  background: var(--blob-3);
+  background: radial-gradient(circle, var(--blob-3), transparent 70%);
 }
 
-.glass-card {
+@utility glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
     0 8px 24px -16px var(--glass-shadow);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
-.glass-pill {
+@utility glass-strong {
   background: var(--glass-bg-strong);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
     0 12px 32px -12px var(--glass-shadow);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
 
-.glow-accent {
+@utility cta-glow {
+  background: var(--accent);
+  color: var(--accent-ink);
   box-shadow:
     0 0 0 1px var(--accent-glow),
     0 8px 32px -4px var(--accent-glow);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+  &:hover {
+    background: var(--accent-2);
+    box-shadow:
+      0 0 0 1px var(--accent-glow),
+      0 10px 40px -2px var(--accent-glow);
+  }
 }
 
 /* Page title / hero type scale (fluid). */
-.text-display {
+@utility text-display {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   line-height: 1.02;
   letter-spacing: -0.035em;
   font-weight: 600;
 }
 
-.text-title {
+@utility text-title {
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
   line-height: 1.1;
   letter-spacing: -0.025em;
   font-weight: 600;
+}
+
+@utility text-gradient {
+  background: linear-gradient(100deg, var(--text-primary) 30%, var(--accent-2) 70%, var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .skeleton {
@@ -307,4 +358,10 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+.recharts-cartesian-axis-tick-value {
+  fill: var(--chart-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }

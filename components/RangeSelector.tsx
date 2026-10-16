@@ -1,7 +1,9 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { cn } from "@/lib/cn";
 import DateRangePicker, { formatDisplay, parseISODate } from "./DateRangePicker";
 
 export type RangePreset = "today" | "week" | "fourWeeks" | "sixMonths" | "year" | "lifetime" | "custom";
@@ -125,71 +127,72 @@ export default function RangeSelector({
       : (PRESETS.find((p) => p.value === preset)?.label ?? "");
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={toggleOpen}
-        className="glass-pill flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-[var(--text-primary)]"
-      >
-        {triggerLabel}
-        <svg
-          viewBox="0 0 24 24"
-          className={`h-3.5 w-3.5 shrink-0 text-[var(--text-tertiary)] transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-text-tertiary">{t("label")}</span>
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          onClick={toggleOpen}
+          aria-haspopup="true"
+          aria-expanded={open}
+          className="glass-strong flex items-center rounded-full py-2 pl-4 pr-9 text-sm font-medium text-text-primary"
         >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
+          {triggerLabel}
+          <ChevronDown
+            className={cn("pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary transition-transform", open && "rotate-180")}
+            aria-hidden="true"
+          />
+        </button>
 
-      {open && (
-        <div
-          className={`glass-card absolute top-[calc(100%+8px)] z-20 max-w-[calc(100vw-2rem)] shadow-xl ${
-            anchor === "left" ? "left-0" : "right-0"
-          } ${view === "calendar" ? "w-72 p-4" : "min-w-[180px] p-1.5"}`}
-        >
-          {view === "list" ? (
-            <ul>
-              {PRESETS.map((p) => {
-                const selected = preset === p.value;
-                return (
-                  <li key={p.value}>
-                    <button
-                      type="button"
-                      onClick={() => handlePresetClick(p.value)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--hover)] ${
-                        selected ? "font-semibold text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      <span className="w-4 shrink-0 text-[var(--accent)]">{selected ? "✓" : ""}</span>
-                      {p.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div>
-              <button
-                type="button"
-                onClick={() => setView("list")}
-                className="mb-2 flex items-center gap-1 text-xs text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-primary)]"
-              >
-                {t("allRanges")}
-              </button>
-              <DateRangePicker
-                startDate={customStart}
-                endDate={customEnd}
-                onChange={onCustomChange}
-                onComplete={() => setOpen(false)}
-              />
-            </div>
-          )}
-        </div>
-      )}
+        {open && (
+          <div
+            className={cn(
+              "glass-strong absolute top-[calc(100%+8px)] z-20 max-w-[calc(100vw-2rem)] rounded-2xl shadow-xl",
+              anchor === "left" ? "left-0" : "right-0",
+              view === "calendar" ? "w-72 p-4" : "min-w-[180px] p-1.5",
+            )}
+          >
+            {view === "list" ? (
+              <ul>
+                {PRESETS.map((p) => {
+                  const selected = preset === p.value;
+                  return (
+                    <li key={p.value}>
+                      <button
+                        type="button"
+                        onClick={() => handlePresetClick(p.value)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--hover)]",
+                          selected ? "font-semibold text-text-primary" : "text-text-secondary",
+                        )}
+                      >
+                        <span className="w-4 shrink-0 text-brand">{selected ? "✓" : ""}</span>
+                        {p.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setView("list")}
+                  className="mb-2 flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-text-primary"
+                >
+                  {t("allRanges")}
+                </button>
+                <DateRangePicker
+                  startDate={customStart}
+                  endDate={customEnd}
+                  onChange={onCustomChange}
+                  onComplete={() => setOpen(false)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

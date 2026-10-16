@@ -119,6 +119,7 @@ the generated share card and playlist name/description. English keeps unprefixed
 | Framework | [Next.js 16](https://nextjs.org) (App Router, Server Components, Route Handlers) |
 | UI | [React 19](https://react.dev), [Tailwind CSS 4](https://tailwindcss.com) |
 | Charts | [Recharts](https://recharts.org) |
+| Icons | [lucide-react](https://lucide.dev) |
 | i18n | [next-intl](https://next-intl.dev) (locale-prefixed routing + message catalogs) |
 | Database | PostgreSQL (e.g. [Neon](https://neon.tech)) |
 | ORM | [Prisma](https://www.prisma.io) (`@prisma/client`) |
