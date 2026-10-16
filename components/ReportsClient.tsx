@@ -174,7 +174,7 @@ export default function ReportsClient() {
 
   return (
     <div className="min-h-screen">
-      <Header active="reports" />
+      <Header />
 
       <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -196,7 +196,7 @@ export default function ReportsClient() {
                     onClick={() => changeGranularity(g)}
                     className={`rounded-full px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
                       granularity === g
-                        ? "bg-[var(--accent)] text-white"
+                        ? "bg-[var(--accent)] text-[var(--accent-ink)]"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
@@ -248,7 +248,7 @@ export default function ReportsClient() {
             <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
             <Link
               href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
               {tCommon("importCta")}
             </Link>
@@ -311,7 +311,7 @@ export default function ReportsClient() {
               <a
                 href={`/api/reports/card?granularity=${granularity}&period=${state.data.key}&style=${cardStyle}&locale=${locale}`}
                 download={`sonalytics-wrapped-${state.data.key}.png`}
-                className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+                className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
               >
                 {t("downloadCard")}
               </a>

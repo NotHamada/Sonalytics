@@ -82,7 +82,7 @@ export default function InsightsClient() {
 
   return (
     <div className="min-h-screen">
-      <Header active="insights" />
+      <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -119,7 +119,7 @@ export default function InsightsClient() {
             <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
             <Link
               href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
             >
               {tCommon("importCta")}
             </Link>

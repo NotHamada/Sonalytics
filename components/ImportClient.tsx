@@ -95,7 +95,7 @@ export default function ImportClient() {
         <code>Streaming_History_Video_*.json</code> {t("uploadDescriptionSuffix")}
       </p>
 
-      <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
+      <label className="glow-accent mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]">
         {t("chooseFiles")}
         <input
           type="file"

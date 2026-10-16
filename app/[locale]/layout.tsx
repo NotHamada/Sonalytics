@@ -36,6 +36,10 @@ if (location.hostname === "localhost") {
 }
 `;
 
+// Runs before first paint so the saved (or OS-preferred) theme is on <html> before any CSS paints —
+// otherwise a light-theme user with a dark OS would see a dark flash on every load.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("sona-theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){}})();`;
+
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
@@ -47,9 +51,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   return (
     <html
       lang={locale}
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         {process.env.NODE_ENV !== "production" && (
           <Script id="canonical-host" strategy="afterInteractive">

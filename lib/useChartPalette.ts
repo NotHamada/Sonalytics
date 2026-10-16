@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export interface ChartPalette {
   accent: string;
@@ -15,7 +15,7 @@ export interface ChartPalette {
 const LIGHT: ChartPalette = {
   accent: "#189b48",
   grid: "rgba(23,23,42,0.12)",
-  text: "#6b6b85",
+  text: "#6e6e88",
   tooltipBg: "rgba(255,255,255,0.9)",
   tooltipBorder: "rgba(255,255,255,0.7)",
   tooltipLabel: "#17172a",
@@ -32,20 +32,28 @@ const DARK: ChartPalette = {
   cursor: "rgba(255,255,255,0.06)",
 };
 
-function prefersDark(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribe(onChange: () => void) {
+  const mq = window.matchMedia(DARK_QUERY);
+  mq.addEventListener("change", onChange);
+  // The header's theme toggle flips <html data-theme> — watch it so charts follow immediately.
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => {
+    mq.removeEventListener("change", onChange);
+    observer.disconnect();
+  };
 }
 
-/** Chart colors that follow the OS/browser color-scheme preference (recharts needs literal values, not CSS vars). */
+function getSnapshot(): boolean {
+  const theme = document.documentElement.dataset.theme;
+  return theme ? theme === "dark" : window.matchMedia(DARK_QUERY).matches;
+}
+
+/** Chart colors that follow the active theme — the explicit light/dark toggle when set, otherwise
+ *  the OS/browser preference (recharts needs literal values, not CSS vars). */
 export function useChartPalette(): ChartPalette {
-  const [isDark, setIsDark] = useState(prefersDark);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
+  const isDark = useSyncExternalStore(subscribe, getSnapshot, () => false);
   return isDark ? DARK : LIGHT;
 }
