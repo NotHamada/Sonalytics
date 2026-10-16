@@ -9,8 +9,9 @@ import HistogramChart from "./HistogramChart";
 import TimeOfDayHeatmap from "./TimeOfDayHeatmap";
 import DayPartBreakdown from "./DayPartBreakdown";
 import Header from "./Header";
-import { Link } from "@/i18n/navigation";
 import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import { PageContainer, SectionHeader } from "./sona/primitives";
+import { ErrorNotice, LoadingState, NoHistoryCard, NoPlaysCard } from "./sona/states";
 
 interface InsightsData {
   empty: boolean;
@@ -80,104 +81,87 @@ export default function InsightsClient() {
     };
   }, [preset, customStart, customEnd, locale]);
 
+  const data = state.status === "ready" ? state.data : null;
+
   return (
     <div className="min-h-screen">
       <Header />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 space-y-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t("title")}</h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">{t("subtitle")}</p>
-          </div>
-          {!(state.status === "ready" && state.data.empty) && (
-            <RangeSelector
-              preset={preset}
-              onPresetChange={setPreset}
-              customStart={customStart}
-              customEnd={customEnd}
-              onCustomChange={(start, end) => {
-                setCustomStart(start);
-                setCustomEnd(end);
-              }}
-            />
-          )}
-        </div>
+      <PageContainer>
+        <SectionHeader
+          level={1}
+          eyebrow={t("eyebrow")}
+          title={t("title")}
+          subtitle={t("subtitle")}
+          action={
+            !(data && data.empty) && (
+              <RangeSelector
+                preset={preset}
+                onPresetChange={setPreset}
+                customStart={customStart}
+                customEnd={customEnd}
+                onCustomChange={(start, end) => {
+                  setCustomStart(start);
+                  setCustomEnd(end);
+                }}
+              />
+            )
+          }
+        />
 
-        {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
-        )}
+        {state.status === "loading" && <LoadingState label={t("loading")} />}
 
-        {state.status === "error" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            {t("loadError", { message: state.message })}
-          </div>
-        )}
+        {state.status === "error" && <ErrorNotice>{t("loadError", { message: state.message })}</ErrorNotice>}
 
-        {state.status === "ready" && state.data.empty && (
-          <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
-            <Link
-              href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-            >
-              {tCommon("importCta")}
-            </Link>
-          </div>
-        )}
+        {data && data.empty && <NoHistoryCard />}
 
-        {state.status === "ready" && !state.data.empty && state.data.emptyRange && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">{tCommon("noPlaysInRange")}</div>
-        )}
+        {data && !data.empty && data.emptyRange && <NoPlaysCard>{tCommon("noPlaysInRange")}</NoPlaysCard>}
 
-        {state.status === "ready" && !state.data.empty && !state.data.emptyRange && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+        {data && !data.empty && !data.emptyRange && (
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <StatCard
+                accent
                 label={t("peakHour")}
-                value={state.data.peakHour ? formatHourLabel(state.data.peakHour.hour, locale) : "—"}
-                hint={
-                  state.data.peakHour
-                    ? t("peakHourHint", { minutes: state.data.peakHour.minutes.toLocaleString() })
-                    : undefined
-                }
+                value={data.peakHour ? formatHourLabel(data.peakHour.hour, locale) : "—"}
+                hint={data.peakHour ? t("peakHourHint", { minutes: data.peakHour.minutes.toLocaleString() }) : undefined}
                 formula={tFormulas("peakHour")}
               />
               <StatCard
                 label={t("peakDay")}
-                value={state.data.peakWeekday?.label ?? "—"}
-                hint={
-                  state.data.peakWeekday
-                    ? t("peakDayHint", { minutes: state.data.peakWeekday.minutes.toLocaleString() })
-                    : undefined
-                }
+                value={data.peakWeekday?.label ?? "—"}
+                hint={data.peakWeekday ? t("peakDayHint", { minutes: data.peakWeekday.minutes.toLocaleString() }) : undefined}
                 formula={tFormulas("peakDay")}
               />
             </div>
 
             <HistogramChart
               title={t("byHour")}
+              subtitle={t("byHourSubtitle")}
               formula={tFormulas("byHour")}
-              data={(state.data.byHour ?? []).map((h) => ({ label: h.label, count: h.minutes }))}
+              data={(data.byHour ?? []).map((h) => ({ label: h.label, count: h.minutes }))}
               barName={t("minutesBarName")}
               emptyMessage={tCommon("notEnoughData")}
+              xInterval={2}
             />
 
-            <HistogramChart
-              title={t("byWeekday")}
-              formula={tFormulas("byWeekday")}
-              data={(state.data.byWeekday ?? []).map((d) => ({ label: d.label, count: d.minutes }))}
-              barName={t("minutesBarName")}
-              emptyMessage={tCommon("notEnoughData")}
-            />
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <TimeOfDayHeatmap data={state.data.heatmap ?? []} />
-              <DayPartBreakdown data={state.data.byHour ?? []} />
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.4fr]">
+              <HistogramChart
+                title={t("byWeekday")}
+                formula={tFormulas("byWeekday")}
+                data={(data.byWeekday ?? []).map((d) => ({ label: d.label, count: d.minutes }))}
+                barName={t("minutesBarName")}
+                emptyMessage={tCommon("notEnoughData")}
+                color="violet"
+                xInterval={0}
+              />
+              <DayPartBreakdown data={data.byHour ?? []} />
             </div>
-          </div>
+
+            <TimeOfDayHeatmap data={data.heatmap ?? []} />
+          </>
         )}
-      </main>
+      </PageContainer>
     </div>
   );
 }

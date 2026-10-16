@@ -64,8 +64,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
             {CANONICAL_HOST_SCRIPT}
           </Script>
         )}
-        <div className="bg-mesh" aria-hidden="true">
-          <div className="blob-3" />
+        <div className="ambient" aria-hidden="true">
+          <span className="b1" />
+          <span className="b2" />
+          <span className="b3" />
         </div>
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>

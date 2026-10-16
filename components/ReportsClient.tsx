@@ -1,16 +1,21 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, Download, ListMusic } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/cn";
 import type { RankedItem } from "@/lib/historyAnalytics";
 import type { GenreCount } from "@/lib/types";
 import { shiftPeriodKey, type ReportGranularity } from "@/lib/reportPeriods";
-import { CARD_THEMES, DEFAULT_CARD_THEME } from "@/lib/cardThemes";
+import { CARD_THEMES, DEFAULT_CARD_THEME, resolveCardTheme } from "@/lib/cardThemes";
 import StatCard from "./StatCard";
 import TopGrid from "./TopGrid";
-import GenreChart from "./GenreChart";
 import Header from "./Header";
+import { BarList } from "./sona/charts";
+import { Artwork, EmptyState, GlassCard, PageContainer, SectionHeader, ThemeSwatch, pillClass } from "./sona/primitives";
+import ShareCardPreview from "./sona/ShareCardPreview";
+import { ErrorNotice, LoadingState, NoHistoryCard, NoPlaysCard } from "./sona/states";
 
 interface RankedItemWithImage extends RankedItem {
   image?: string | null;
@@ -47,35 +52,43 @@ function trackHref(item: RankedItemWithImage): string | null {
   return id ? `/track/${id}` : null;
 }
 
-function FeaturedCard({ label, item, href }: { label: string; item?: RankedItemWithImage; href: string | null }) {
+function FeaturedCard({
+  label,
+  item,
+  href,
+  shape,
+}: {
+  label: string;
+  item?: RankedItemWithImage;
+  href: string | null;
+  shape: "square" | "circle";
+}) {
   const tCommon = useTranslations("common");
   if (!item) return null;
-  const content = (
-    <div className="glass-card group flex items-center gap-4 p-5">
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--hover)] transition-transform group-hover:scale-[1.03]">
-        {item.image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image} alt="" className="h-full w-full object-cover" />
-        )}
+
+  const body = (
+    <GlassCard className="group flex items-center gap-4">
+      <div className="w-20 shrink-0">
+        <Artwork src={item.image} label={item.name} shape={shape} />
       </div>
       <div className="min-w-0">
-        <div className="text-xs font-medium text-[var(--text-tertiary)]">{label}</div>
-        <div className="truncate text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)]">
-          {item.name}
-        </div>
-        <div className="truncate text-xs text-[var(--text-tertiary)]">
-          {tCommon("units.plays", { count: item.plays })} · {tCommon("units.minutes", { count: Math.round(item.minutes) })}
-          {item.subtitle ? ` · ${item.subtitle}` : ""}
-        </div>
+        <p className="text-xs uppercase tracking-[0.08em] text-text-tertiary">{label}</p>
+        <p className={cn("truncate text-xl font-semibold", href && "group-hover:text-brand")}>{item.name}</p>
+        <p className="truncate text-sm text-text-secondary">
+          {[item.subtitle, tCommon("units.plays", { count: item.plays }), tCommon("units.minutes", { count: Math.round(item.minutes) })]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       </div>
-    </div>
+    </GlassCard>
   );
+
   return href ? (
     <Link href={href} className="block min-w-0">
-      {content}
+      {body}
     </Link>
   ) : (
-    content
+    body
   );
 }
 
@@ -136,7 +149,8 @@ export default function ReportsClient() {
     };
   }, [granularity, requestedKey, locale]);
 
-  const currentKey = state.status === "ready" ? state.data.key : undefined;
+  const data = state.status === "ready" ? state.data : null;
+  const currentKey = data?.key;
 
   function changeGranularity(next: ReportGranularity) {
     setGranularity(next);
@@ -144,13 +158,13 @@ export default function ReportsClient() {
   }
 
   async function handleCreatePlaylist() {
-    if (state.status !== "ready" || state.data.empty || state.data.emptyPeriod || !state.data.key) return;
+    if (!data || data.empty || data.emptyPeriod || !data.key) return;
     setPlaylistState({ status: "loading" });
     try {
       const res = await fetch("/api/reports/playlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ granularity, period: state.data.key, locale }),
+        body: JSON.stringify({ granularity, period: data.key, locale }),
       });
       if (res.status === 401) {
         window.location.href = "/";
@@ -165,207 +179,190 @@ export default function ReportsClient() {
         setPlaylistState({ status: "error", kind: "generic", code: body.error });
         return;
       }
-      const data = (await res.json()) as { playlistUrl: string; trackCount: number };
-      setPlaylistState({ status: "success", url: data.playlistUrl, trackCount: data.trackCount });
+      const result = (await res.json()) as { playlistUrl: string; trackCount: number };
+      setPlaylistState({ status: "success", url: result.playlistUrl, trackCount: result.trackCount });
     } catch (err) {
       setPlaylistState({ status: "error", kind: "generic", code: err instanceof Error ? err.message : undefined });
     }
   }
 
+  const showControls = !(data && data.empty);
+
   return (
     <div className="min-h-screen">
       <Header />
 
-      <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-              {granularity === "year" ? t("yearlyWrapped") : t("monthlyWrapped")}
-            </h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              {t("subtitle", { granularity: t(`granularity.${granularity}`) })}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {!(state.status === "ready" && state.data.empty) && (
-              <div className="glass-pill flex items-center gap-1 rounded-full p-1">
-                {(["month", "year"] as const).map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => changeGranularity(g)}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
-                      granularity === g
-                        ? "bg-[var(--accent)] text-[var(--accent-ink)]"
-                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    {t(`granularity.${g}`)}
-                  </button>
-                ))}
-              </div>
-            )}
-            {!(state.status === "ready" && state.data.empty) && currentKey && (
-              <div className="glass-pill flex items-center gap-2 rounded-full px-3 py-2">
+      <PageContainer>
+        <SectionHeader level={1} eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle", { granularity: t(`granularity.${granularity}`) })} />
+
+        {showControls && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div role="group" aria-label={t("periodType")} className="glass flex rounded-full p-1">
+              {(["month", "year"] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  aria-pressed={granularity === g}
+                  onClick={() => changeGranularity(g)}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-sm capitalize",
+                    granularity === g ? "bg-brand font-semibold text-brand-ink" : "text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  {t(`granularity.${g}`)}
+                </button>
+              ))}
+            </div>
+            {currentKey && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setRequestedKey(shiftPeriodKey(granularity, currentKey, -1))}
-                  disabled={state.status === "ready" && !state.data.hasPrev}
+                  disabled={!data || !data.hasPrev}
                   aria-label={t("prevAriaLabel", { granularity: t(`granularity.${granularity}`) })}
-                  className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
+                  className="glass grid h-9 w-9 place-items-center rounded-full disabled:opacity-40"
                 >
-                  ‹
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
-                <span className="min-w-[9rem] text-center text-sm font-medium text-[var(--text-primary)]">
-                  {state.status === "ready" ? state.data.label : "…"}
-                </span>
+                <p className="min-w-36 text-center font-medium" aria-live="polite">
+                  {data ? data.label : "…"}
+                </p>
                 <button
                   type="button"
                   onClick={() => setRequestedKey(shiftPeriodKey(granularity, currentKey, 1))}
-                  disabled={state.status === "ready" && !state.data.hasNext}
+                  disabled={!data || !data.hasNext}
                   aria-label={t("nextAriaLabel", { granularity: t(`granularity.${granularity}`) })}
-                  className="rounded-full p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-30"
+                  className="glass grid h-9 w-9 place-items-center rounded-full disabled:opacity-40"
                 >
-                  ›
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             )}
           </div>
-        </div>
-
-        {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
         )}
 
-        {state.status === "error" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            {t("loadError", { message: state.message })}
-          </div>
-        )}
+        {state.status === "loading" && <LoadingState label={t("loading")} />}
 
-        {state.status === "ready" && state.data.empty && (
-          <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
-            <Link
-              href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-            >
-              {tCommon("importCta")}
-            </Link>
-          </div>
-        )}
+        {state.status === "error" && <ErrorNotice>{t("loadError", { message: state.message })}</ErrorNotice>}
 
-        {state.status === "ready" && !state.data.empty && state.data.emptyPeriod && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            {t("noPlaysInPeriod", { label: state.data.label ?? "" })}
-          </div>
-        )}
+        {data && data.empty && <NoHistoryCard />}
 
-        {state.status === "ready" && !state.data.empty && !state.data.emptyPeriod && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label={tCommon("stats.totalPlays")} value={(state.data.totalPlays ?? 0).toLocaleString()} />
-              <StatCard label={tCommon("stats.totalMinutes")} value={(state.data.totalMinutes ?? 0).toLocaleString()} />
+        {data && !data.empty && data.emptyPeriod && <NoPlaysCard>{t("noPlaysInPeriod", { label: data.label ?? "" })}</NoPlaysCard>}
+
+        {data && !data.empty && !data.emptyPeriod && (
+          <>
+            <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
+              <StatCard accent label={tCommon("stats.totalPlays")} value={(data.totalPlays ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalMinutes")} value={(data.totalMinutes ?? 0).toLocaleString()} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FeaturedCard
                 label={t("topArtist")}
-                item={state.data.topArtists?.[0]}
-                href={
-                  state.data.topArtists?.[0]
-                    ? `/artist/${encodeURIComponent(state.data.topArtists[0].name)}`
-                    : null
-                }
+                item={data.topArtists?.[0]}
+                href={data.topArtists?.[0] ? `/artist/${encodeURIComponent(data.topArtists[0].name)}` : null}
+                shape="circle"
               />
               <FeaturedCard
                 label={t("topTrack")}
-                item={state.data.topTracks?.[0]}
-                href={state.data.topTracks?.[0] ? trackHref(state.data.topTracks[0]) : null}
+                item={data.topTracks?.[0]}
+                href={data.topTracks?.[0] ? trackHref(data.topTracks[0]) : null}
+                shape="square"
               />
             </div>
 
-            <div className="glass-card flex flex-col items-center gap-3 p-6 text-center">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t("shareWrapped")}</h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {t("shareDescription", { label: state.data.label ?? "" })}
-              </p>
-              <div className="flex items-center gap-3">
-                {CARD_THEMES.map((theme) => (
+            <GlassCard as="section" aria-labelledby="share-h" className="grid grid-cols-1 gap-8 md:grid-cols-[1fr_auto]">
+              <div className="flex flex-col gap-5">
+                <div>
+                  <h2 id="share-h" className="text-xl font-semibold tracking-tight">
+                    {t("shareWrapped")}
+                  </h2>
+                  <p className="mt-1 text-sm text-text-secondary">{t("shareDescription", { label: data.label ?? "" })}</p>
+                </div>
+
+                <div role="group" aria-label={t("cardTheme")} className="flex gap-2">
+                  {CARD_THEMES.map((theme) => (
+                    <ThemeSwatch
+                      key={theme.id}
+                      name={t(`themes.${theme.id}`)}
+                      background={theme.heroGradient}
+                      selected={cardStyle === theme.id}
+                      onSelect={() => setCardStyle(theme.id)}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={`/api/reports/card?granularity=${granularity}&period=${data.key}&style=${cardStyle}&locale=${locale}`}
+                    download={`sonalytics-wrapped-${data.key}.png`}
+                    className={pillClass("primary")}
+                  >
+                    <Download className="h-4 w-4" aria-hidden="true" />
+                    {t("downloadCard")}
+                  </a>
                   <button
-                    key={theme.id}
                     type="button"
-                    onClick={() => setCardStyle(theme.id)}
-                    aria-label={t(`themes.${theme.id}`)}
-                    aria-pressed={cardStyle === theme.id}
-                    title={t(`themes.${theme.id}`)}
-                    className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
-                      cardStyle === theme.id
-                        ? "border-[var(--accent)] scale-110"
-                        : "border-transparent opacity-70 hover:opacity-100"
-                    }`}
-                    style={{ background: theme.swatch }}
-                  />
-                ))}
+                    onClick={handleCreatePlaylist}
+                    disabled={playlistState.status === "loading"}
+                    className={pillClass("secondary")}
+                  >
+                    <ListMusic className="h-4 w-4" aria-hidden="true" />
+                    {playlistState.status === "loading" ? t("creatingPlaylist") : t("createPlaylist")}
+                  </button>
+                </div>
+
+                {playlistState.status === "success" && (
+                  <p className="text-sm text-text-secondary">
+                    {t("playlistCreated", { count: playlistState.trackCount })}{" "}
+                    <a href={playlistState.url} target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-4">
+                      {t("openInSpotify")}
+                    </a>
+                  </p>
+                )}
+
+                {playlistState.status === "error" && playlistState.kind === "reconnect" && (
+                  <p className="text-sm text-danger">
+                    {t("reconnectRequired")}{" "}
+                    <a href={`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`} className="font-semibold underline underline-offset-4">
+                      {t("reconnectCta")}
+                    </a>
+                  </p>
+                )}
+
+                {playlistState.status === "error" && playlistState.kind === "generic" && (
+                  <p className="text-sm text-danger">
+                    {playlistState.code === "no_tracks"
+                      ? t("playlistNoTracksError")
+                      : t("playlistError", { message: playlistState.code ?? "unknown_error" })}
+                  </p>
+                )}
               </div>
-              <a
-                href={`/api/reports/card?granularity=${granularity}&period=${state.data.key}&style=${cardStyle}&locale=${locale}`}
-                download={`sonalytics-wrapped-${state.data.key}.png`}
-                className="glow-accent mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-              >
-                {t("downloadCard")}
-              </a>
 
-              <button
-                type="button"
-                onClick={handleCreatePlaylist}
-                disabled={playlistState.status === "loading"}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--accent)] px-6 py-3 text-sm font-semibold text-[var(--accent)] transition-transform hover:scale-[1.03] disabled:pointer-events-none disabled:opacity-60"
-              >
-                {playlistState.status === "loading" ? t("creatingPlaylist") : t("createPlaylist")}
-              </button>
+              <ShareCardPreview
+                theme={resolveCardTheme(cardStyle)}
+                label={data.label ?? ""}
+                minutes={(data.totalMinutes ?? 0).toLocaleString(locale)}
+                artists={(data.topArtists ?? []).slice(0, 5).map((a) => a.name)}
+                tracks={(data.topTracks ?? []).slice(0, 5).map((a) => a.name)}
+                heroImage={data.topArtists?.[0]?.image}
+              />
+            </GlassCard>
 
-              {playlistState.status === "success" && (
-                <p className="text-xs text-[var(--text-secondary)]">
-                  {t("playlistCreated", { count: playlistState.trackCount })}{" "}
-                  <a
-                    href={playlistState.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold text-[var(--accent)] underline"
-                  >
-                    {t("openInSpotify")}
-                  </a>
-                </p>
+            <TopGrid title={t("topArtists")} items={data.topArtists ?? []} imageShape="circle" linkType="artist" />
+            <TopGrid title={t("topTracks")} items={data.topTracks ?? []} linkType="track" />
+
+            <GlassCard as="section" aria-label={t("topGenres")} className="flex flex-col gap-4">
+              <h3 className="text-base font-semibold">{t("topGenres")}</h3>
+              {(data.topGenres ?? []).length === 0 ? (
+                <EmptyState title={tCommon("notEnoughData")} />
+              ) : (
+                <BarList items={(data.topGenres ?? []).map((g) => ({ label: g.genre, value: g.count }))} tone="violet" />
               )}
-
-              {playlistState.status === "error" && playlistState.kind === "reconnect" && (
-                <p className="text-xs text-red-500 dark:text-red-300">
-                  {t("reconnectRequired")}{" "}
-                  <a
-                    href={`/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`}
-                    className="font-semibold underline"
-                  >
-                    {t("reconnectCta")}
-                  </a>
-                </p>
-              )}
-
-              {playlistState.status === "error" && playlistState.kind === "generic" && (
-                <p className="text-xs text-red-500 dark:text-red-300">
-                  {playlistState.code === "no_tracks"
-                    ? t("playlistNoTracksError")
-                    : t("playlistError", { message: playlistState.code ?? "unknown_error" })}
-                </p>
-              )}
-            </div>
-
-            <TopGrid title={t("topArtists")} items={state.data.topArtists ?? []} linkType="artist" />
-            <TopGrid title={t("topTracks")} items={state.data.topTracks ?? []} linkType="track" />
-            <GenreChart data={state.data.topGenres ?? []} />
-          </div>
+            </GlassCard>
+          </>
         )}
-      </main>
+      </PageContainer>
     </div>
   );
 }

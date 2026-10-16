@@ -1,32 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { Info } from "lucide-react";
+import { useId } from "react";
 
-/** A small "(i)" affordance that reveals the formula/rule behind a stat on click — keeps the
- *  UI clean by default while still making every number's math inspectable. */
+/** A small "(i)" affordance that reveals the formula/rule behind a stat on hover, focus or tap —
+ *  keeps the UI clean by default while still making every number's math inspectable. */
 export default function InfoTooltip({ text }: { text: string }) {
-  const [open, setOpen] = useState(false);
+  const id = useId();
 
   return (
-    <span className="relative inline-flex">
+    <span className="group relative inline-flex">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        onBlur={() => setOpen(false)}
         aria-label="How this is calculated"
-        aria-expanded={open}
-        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold leading-none text-[var(--text-tertiary)] ring-1 ring-[var(--divider)] transition-colors hover:text-[var(--text-primary)] hover:ring-[var(--text-tertiary)]"
+        aria-describedby={id}
+        className="grid h-6 w-6 place-items-center rounded-full text-text-tertiary transition-colors hover:text-text-primary"
       >
-        i
+        <Info className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
-      {open && (
-        <span
-          role="tooltip"
-          className="glass-pill absolute top-full left-1/2 z-20 mt-2 w-64 -translate-x-1/2 rounded-xl px-3 py-2.5 text-left text-xs font-normal normal-case leading-relaxed text-[var(--text-secondary)] shadow-lg"
-        >
-          {text}
-        </span>
-      )}
+      <span
+        id={id}
+        role="tooltip"
+        className="glass-strong pointer-events-none invisible absolute right-0 top-7 z-30 w-56 rounded-xl p-3 text-left text-xs font-normal normal-case leading-relaxed tracking-normal text-text-secondary opacity-0 transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+      >
+        {text}
+      </span>
     </span>
   );
 }

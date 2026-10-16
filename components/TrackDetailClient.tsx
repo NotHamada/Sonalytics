@@ -7,7 +7,10 @@ import StatCard from "./StatCard";
 import MiniPlayer from "./MiniPlayer";
 import Header from "./Header";
 import { Link } from "@/i18n/navigation";
-import RangeSelector, { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import { computeRangeBounds, type RangePreset } from "./RangeSelector";
+import { DetailHero, DetailTopBar, PlayerCard } from "./sona/DetailHero";
+import { PageContainer } from "./sona/primitives";
+import { ErrorNotice, LoadingState, NoHistoryCard, NoPlaysCard } from "./sona/states";
 
 interface TrendPoint {
   label: string;
@@ -96,145 +99,91 @@ export default function TrackDetailClient({ id }: { id: string }) {
     };
   }, [id, preset, customStart, customEnd]);
 
+  const data = state.status === "ready" ? state.data : null;
+
+  const metaParts = data
+    ? [
+        data.artistName ? (
+          <Link key="artist" href={`/artist/${encodeURIComponent(data.artistName)}`} className="hover:text-text-primary hover:underline">
+            {data.artistName}
+          </Link>
+        ) : null,
+        data.albumName ? (
+          <Link key="album" href={`/album/${encodeURIComponent(data.albumName)}`} className="hover:text-text-primary hover:underline">
+            {data.albumName}
+          </Link>
+        ) : null,
+        data.durationMs != null ? formatDuration(data.durationMs) : null,
+        data.popularity != null ? t("popularity", { score: data.popularity }) : null,
+      ].filter(Boolean)
+    : [];
+
   return (
     <div className="min-h-screen">
       <Header />
 
-      <main className="mx-auto max-w-4xl px-4 py-8 space-y-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href="/history"
-            className="inline-flex items-center gap-1 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-          >
-            {tCommon("backToFullHistory")}
-          </Link>
-          {!(state.status === "ready" && state.data.empty) && (
-            <RangeSelector
-              preset={preset}
-              onPresetChange={setPreset}
-              customStart={customStart}
-              customEnd={customEnd}
-              onCustomChange={(start, end) => {
-                setCustomStart(start);
-                setCustomEnd(end);
-              }}
+      <PageContainer>
+        <DetailTopBar
+          showRange={!(data && data.empty)}
+          preset={preset}
+          onPresetChange={setPreset}
+          customStart={customStart}
+          customEnd={customEnd}
+          onCustomChange={(start, end) => {
+            setCustomStart(start);
+            setCustomEnd(end);
+          }}
+        />
+
+        {state.status === "loading" && <LoadingState label={t("loading")} />}
+
+        {state.status === "error" && <ErrorNotice>{t("loadError", { message: state.message })}</ErrorNotice>}
+
+        {data && data.empty && <NoHistoryCard />}
+
+        {data && !data.empty && (data.emptyRange || data.notFound) && (
+          <NoPlaysCard>{data.notFound ? t("notFoundInRange") : tCommon("noPlaysInRange")}</NoPlaysCard>
+        )}
+
+        {data && !data.empty && !data.emptyRange && !data.notFound && (
+          <>
+            <DetailHero
+              kind={tCommon("kinds.track")}
+              title={data.name ?? ""}
+              image={data.image}
+              meta={metaParts.map((part, i) => (
+                <span key={i}>
+                  {i > 0 && " · "}
+                  {part}
+                </span>
+              ))}
+              rank={data.rank != null ? t("rank", { rank: data.rank, total: data.totalRanked ?? 0 }) : undefined}
             />
-          )}
-        </div>
 
-        {state.status === "loading" && (
-          <div className="py-12 text-center text-[var(--text-tertiary)]">{t("loading")}</div>
-        )}
+            <PlayerCard label={t("player")}>
+              <MiniPlayer trackId={id} height={152} />
+            </PlayerCard>
 
-        {state.status === "error" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500 dark:text-red-300">
-            {t("loadError", { message: state.message })}
-          </div>
-        )}
-
-        {state.status === "ready" && state.data.empty && (
-          <div className="glass-card p-8 text-center">
-            <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
-            <Link
-              href="/import"
-              className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
-            >
-              {tCommon("importCta")}
-            </Link>
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && (state.data.emptyRange || state.data.notFound) && (
-          <div className="glass-card p-8 text-center text-[var(--text-secondary)]">
-            {state.data.notFound ? t("notFoundInRange") : tCommon("noPlaysInRange")}
-          </div>
-        )}
-
-        {state.status === "ready" && !state.data.empty && !state.data.emptyRange && !state.data.notFound && (
-          <div className="space-y-6">
-            <div className="glass-card flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
-              <div className="flex flex-1 flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-                <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-[var(--hover)]">
-                  {state.data.image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={state.data.image} alt="" className="h-full w-full object-cover" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">{state.data.name}</h2>
-                  {state.data.artistName && (
-                    <Link
-                      href={`/artist/${encodeURIComponent(state.data.artistName)}`}
-                      className="mt-1 inline-block text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-                    >
-                      {state.data.artistName}
-                    </Link>
-                  )}
-                  {(state.data.albumName || state.data.durationMs != null || state.data.popularity != null) && (
-                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-                      {[
-                        state.data.albumName ? (
-                          <Link
-                            key="album"
-                            href={`/album/${encodeURIComponent(state.data.albumName)}`}
-                            className="hover:text-[var(--text-primary)] hover:underline"
-                          >
-                            {state.data.albumName}
-                          </Link>
-                        ) : null,
-                        state.data.durationMs != null ? formatDuration(state.data.durationMs) : null,
-                        state.data.popularity != null ? t("popularity", { score: state.data.popularity }) : null,
-                      ]
-                        .filter(Boolean)
-                        .map((part, i) => (
-                          <span key={i}>
-                            {i > 0 && " · "}
-                            {part}
-                          </span>
-                        ))}
-                    </p>
-                  )}
-                  {state.data.rank != null && (
-                    <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-                      {t("rank", { rank: state.data.rank, total: state.data.totalRanked ?? 0 })}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="w-full sm:w-1/2">
-                <MiniPlayer trackId={id} height={80} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <StatCard label={tCommon("stats.totalPlays")} value={(state.data.totalPlays ?? 0).toLocaleString()} />
-              <StatCard label={tCommon("stats.totalMinutes")} value={(state.data.totalMinutes ?? 0).toLocaleString()} />
-              <StatCard
-                label={t("skipRate")}
-                value={`${state.data.skipRate ?? 0}%`}
-                hint={tCommon("shareOfSkippedEarly")}
-              />
+            <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
+              <StatCard accent label={tCommon("stats.totalPlays")} value={(data.totalPlays ?? 0).toLocaleString()} />
+              <StatCard label={tCommon("stats.totalMinutes")} value={(data.totalMinutes ?? 0).toLocaleString()} />
+              <StatCard label={t("skipRate")} value={`${data.skipRate ?? 0}%`} hint={tCommon("shareOfSkippedEarly")} />
               <StatCard
                 label={tCommon("stats.since")}
-                value={state.data.firstPlayed ? new Date(state.data.firstPlayed).toLocaleDateString(locale) : "—"}
-                hint={
-                  state.data.lastPlayed
-                    ? t("throughDate", { date: new Date(state.data.lastPlayed).toLocaleDateString(locale) })
-                    : undefined
-                }
+                value={data.firstPlayed ? new Date(data.firstPlayed).toLocaleDateString(locale) : "—"}
+                hint={data.lastPlayed ? t("throughDate", { date: new Date(data.lastPlayed).toLocaleDateString(locale) }) : undefined}
               />
             </div>
 
             <HistogramChart
               title={t("playsOverTime")}
-              data={(state.data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
+              data={(data.trend ?? []).map((point) => ({ label: point.label, count: point.minutes }))}
               barName={tCommon("units.minutesLabel")}
               emptyMessage={tCommon("notEnoughData")}
             />
-          </div>
+          </>
         )}
-      </main>
+      </PageContainer>
     </div>
   );
 }
