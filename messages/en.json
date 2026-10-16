@@ -6,7 +6,10 @@
       "analysis": "Analysis",
       "reports": "Reports",
       "import": "Import",
-      "disconnect": "Disconnect"
+      "disconnect": "Disconnect",
+      "main": "Main",
+      "menu": "Menu",
+      "toggleTheme": "Toggle light/dark theme"
     },
     "noHistory": "No imported history yet.",
     "importCta": "Import your data",

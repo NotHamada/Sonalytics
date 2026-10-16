@@ -166,7 +166,7 @@ export default function DateRangePicker({
               aria-label={formatDisplay(day, locale)}
               className={`aspect-square rounded-full text-sm transition-colors ${
                 edge
-                  ? "bg-[var(--accent)] font-semibold text-white"
+                  ? "bg-[var(--accent)] font-semibold text-[var(--accent-ink)]"
                   : within
                     ? "bg-[var(--accent-soft)] text-[var(--text-primary)]"
                     : "text-[var(--text-primary)] hover:bg-[var(--hover)]"

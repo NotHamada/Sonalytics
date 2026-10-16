@@ -10,31 +10,38 @@
 
   --text-primary: #17172a;
   --text-secondary: #52526b;
-  --text-tertiary: #85859e;
+  --text-tertiary: #6e6e88;
 
   --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(255, 255, 255, 0.65);
   --glass-shadow: rgba(35, 25, 70, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.5);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
 
-  --divider: rgba(23, 23, 42, 0.09);
+  --divider: rgba(23, 23, 42, 0.1);
   --hover: rgba(23, 23, 42, 0.05);
 
   --accent: #189b48;
   --accent-2: #1ed760;
-  --accent-glow: rgba(30, 215, 96, 0.35);
-  --accent-soft: rgba(24, 155, 72, 0.12);
+  --accent-glow: rgba(24, 155, 72, 0.32);
+  --accent-soft: rgba(24, 155, 72, 0.14);
+  /* Text color on top of a solid --accent fill (buttons, selected pills). */
+  --accent-ink: #ffffff;
   --violet: #6a4cff;
   --violet-glow: rgba(106, 76, 255, 0.3);
-  --violet-soft: rgba(106, 76, 255, 0.12);
+  --violet-soft: rgba(106, 76, 255, 0.14);
+  --warn: #a35a00;
+  --warn-soft: rgba(255, 160, 50, 0.18);
 
   --chart-grid: rgba(23, 23, 42, 0.1);
-  --chart-text: #6b6b85;
+  --chart-text: #6e6e88;
 }
 
+/* Dark tokens live in two places on purpose: the media query is the no-JS fallback, and
+   [data-theme="dark"] is what the header's theme toggle (and the pre-paint script in the
+   layout) sets. Keep both blocks identical. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg-base: #0a0a14;
     --blob-1: #4a1259;
     --blob-2: #0f2f57;
@@ -48,22 +55,65 @@
     --glass-bg-strong: rgba(26, 26, 44, 0.75);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-shadow: rgba(0, 0, 0, 0.5);
-    --glass-highlight: rgba(255, 255, 255, 0.07);
+    --glass-highlight: rgba(255, 255, 255, 0.06);
 
     --divider: rgba(255, 255, 255, 0.09);
     --hover: rgba(255, 255, 255, 0.06);
 
     --accent: #1ed760;
     --accent-2: #4fe583;
-    --accent-glow: rgba(30, 215, 96, 0.4);
     --accent-soft: rgba(30, 215, 96, 0.16);
+    --accent-glow: rgba(30, 215, 96, 0.4);
+    --accent-ink: #062b14;
     --violet: #9b83ff;
     --violet-glow: rgba(155, 131, 255, 0.35);
     --violet-soft: rgba(155, 131, 255, 0.18);
+    --warn: #ffb86b;
+    --warn-soft: rgba(255, 184, 107, 0.16);
 
     --chart-grid: rgba(255, 255, 255, 0.09);
     --chart-text: #8b8bab;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-base: #0a0a14;
+  --blob-1: #4a1259;
+  --blob-2: #0f2f57;
+  --blob-3: #0b3b2a;
+
+  --text-primary: #f2f2f9;
+  --text-secondary: #aeaec8;
+  --text-tertiary: #71718f;
+
+  --glass-bg: rgba(22, 22, 38, 0.55);
+  --glass-bg-strong: rgba(26, 26, 44, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+
+  --divider: rgba(255, 255, 255, 0.09);
+  --hover: rgba(255, 255, 255, 0.06);
+
+  --accent: #1ed760;
+  --accent-2: #4fe583;
+  --accent-soft: rgba(30, 215, 96, 0.16);
+  --accent-glow: rgba(30, 215, 96, 0.4);
+  --accent-ink: #062b14;
+  --violet: #9b83ff;
+  --violet-glow: rgba(155, 131, 255, 0.35);
+  --violet-soft: rgba(155, 131, 255, 0.18);
+  --warn: #ffb86b;
+  --warn-soft: rgba(255, 184, 107, 0.16);
+
+  --chart-grid: rgba(255, 255, 255, 0.09);
+  --chart-text: #8b8bab;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @theme inline {
@@ -80,6 +130,12 @@
 
 * {
   border-color: var(--divider);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 html,
@@ -142,7 +198,7 @@ body {
   content: "";
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
+  filter: blur(110px);
   opacity: 0.55;
 }
 
@@ -174,20 +230,81 @@ body {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
   box-shadow:
-    0 8px 32px var(--glass-shadow),
-    inset 0 1px 0 var(--glass-highlight);
+    inset 0 1px 0 var(--glass-highlight),
+    0 8px 24px -16px var(--glass-shadow);
 }
 
 .glass-pill {
   background: var(--glass-bg-strong);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 12px 32px -12px var(--glass-shadow);
 }
 
 .glow-accent {
-  box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 28px var(--accent-glow);
+  box-shadow:
+    0 0 0 1px var(--accent-glow),
+    0 8px 32px -4px var(--accent-glow);
+}
+
+/* Page title / hero type scale (fluid). */
+.text-display {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+
+.text-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--glass-bg) 0%, var(--glass-highlight) 50%, var(--glass-bg) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.fade-up {
+  animation: fade-up 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

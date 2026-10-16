@@ -137,11 +137,10 @@ export default function HistoryClient() {
   return (
     <div className="min-h-screen">
       <Header
-        active="history"
         titleExtra={
           dashboard.status === "ready" && (
-            <span className="ml-2 hidden font-normal text-[var(--text-tertiary)] sm:inline">
-              — {dashboard.data.displayName}
+            <span className="hidden truncate rounded-full bg-[var(--glass-bg-strong)] px-2.5 py-0.5 text-xs text-[var(--text-secondary)] sm:inline">
+              {dashboard.data.displayName}
             </span>
           )
         }
@@ -221,7 +220,7 @@ export default function HistoryClient() {
               <p className="text-[var(--text-secondary)]">{tCommon("noHistory")}</p>
               <Link
                 href="/import"
-                className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+                className="glow-accent mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
               >
                 {tCommon("importCta")}
               </Link>

@@ -6,7 +6,10 @@
       "analysis": "Análise",
       "reports": "Relatórios",
       "import": "Importar",
-      "disconnect": "Desconectar"
+      "disconnect": "Desconectar",
+      "main": "Principal",
+      "menu": "Menu",
+      "toggleTheme": "Alternar tema claro/escuro"
     },
     "noHistory": "Nenhum histórico importado ainda.",
     "importCta": "Importar seus dados",

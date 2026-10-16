@@ -121,7 +121,7 @@ export default async function Home({
 
         <NextLink
           href="/api/auth/login"
-          className="glow-accent mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-7 py-3.5 font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
+          className="glow-accent mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-7 py-3.5 font-semibold text-[var(--accent-ink)] transition-transform hover:scale-[1.03] hover:bg-[var(--accent-2)]"
         >
           {t("connect")}
         </NextLink>

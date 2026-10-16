@@ -61,7 +61,7 @@ export default async function ImportPage({ params }: { params: Promise<{ locale:
 
   return (
     <div className="min-h-screen">
-      <Header active="import" />
+      <Header />
 
       <main className="mx-auto max-w-3xl px-4 py-12 space-y-10 sm:px-6">
         <div className="text-center">
